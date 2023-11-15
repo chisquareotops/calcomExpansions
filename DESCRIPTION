@@ -1,0 +1,23 @@
+Package: calcomExpansions
+Title: Calcom Expansions
+Version: 0.1.0
+Date: 2023-11-15
+Authors@R: 
+    c(person(given = "Nicholas",
+             family = "Grunloh",
+             role = c("aut", "cre"),
+             email = "nick.grunloh@noaa.gov"))
+Description: A automated version of Don's Visual Basic calcom expansion code rewritten in R. 
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.2
+Imports: 
+	RJDBC,
+	lares,
+	dplyr,
+	getPass
+
+Depends: 
+	R (>= 2.10)
+	?Java?
