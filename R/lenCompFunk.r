@@ -8,15 +8,11 @@
 #
 #upon installing RJDBC you may need to run "R CMD javareconf" command in the 
 #terminal as root to add Java support to R.
-suppressMessages(library(RJDBC, quietly=FALSE))
-#
-#suppressMessages(library(lares, quietly=FALSE))
-#
-suppressMessages(library(dplyr, quietly=FALSE))
-#
-suppressMessages(library(getPass, quietly=FALSE))
-#
-suppressMessages(library(squash, quietly=FALSE))
+
+#suppressMessages(library(RJDBC, quietly=FALSE))   #JDBC maybe DBI: dbConnect
+#suppressMessages(library(dplyr, quietly=FALSE))   #appearantly not used
+#suppressMessages(library(getPass, quietly=FALSE)) #getPass
+#suppressMessages(library(squash, quietly=FALSE))  #hist2
 
 #Based on notes from donExpandLenButREjWeight.r
 
@@ -122,10 +118,10 @@ getCalcomLenData = function(year, save=F, fromFile=F){
 			# Create microsoft sql connection driver and open connection to CALCOM
 			# CALCOM is an MS-SQL server on the PSMFC VPN
 			# sqljdbc4.jar file is required for creating the microsoft sql driver
-			mDrv = JDBC('com.microsoft.sqlserver.jdbc.SQLServerDriver', './sqljdbc4.jar', identifier.quote="'")
+			mDrv = RJDBC::JDBC('com.microsoft.sqlserver.jdbc.SQLServerDriver', './sqljdbc4.jar', identifier.quote="'")
 			# CALCOM connection
 			writeLines("\nReading CALCOM Length Data From CALCOM Connection...") 
-			mCon = dbConnect(mDrv, 'jdbc:sqlserver://sql2016.psmfc.org\\calcom;databaseName=CALCOM', getPass('CALCOM User: '), getPass('Password: '))	
+			mCon = RJDBC::dbConnect(mDrv, 'jdbc:sqlserver://sql2016.psmfc.org\\calcom;databaseName=CALCOM', getPass::getPass('CALCOM User: '), getPass::getPass('Password: '))	
 			
 			#
 			tempLen1 = c()
@@ -140,7 +136,7 @@ getCalcomLenData = function(year, save=F, fromFile=F){
 				
 				#sums over qtr
 				#NOTE: depends on having completed sppComp expansion in this given year
-				tempLen1 = rbind(tempLen1, dbGetQuery(mCon, sprintf('
+				tempLen1 = rbind(tempLen1, RJDBC::dbGetQuery(mCon, sprintf('
 				                select 
 				                        year, 
 				                        species, 
@@ -175,13 +171,13 @@ getCalcomLenData = function(year, save=F, fromFile=F){
 				#tempLen1$LBS = as.numeric(tempLen1$LBS)
 				
 				#2) select * into temp_len_2 from len_samp_vu where lenct1>9 and @expandyr=yr order by live_fish, species, mark_cat, port_complex, gear_grp
-				tempLen2 = rbind(tempLen2, dbGetQuery(mCon, sprintf('select * from len_samp_vu where lenct1>9 and %d=yr order by live_fish, species, mark_cat, port_complex, gear_grp', twoDigitYear)) )
+				tempLen2 = rbind(tempLen2, RJDBC::dbGetQuery(mCon, sprintf('select * from len_samp_vu where lenct1>9 and %d=yr order by live_fish, species, mark_cat, port_complex, gear_grp', twoDigitYear)) )
 				
 				#3) select * into temp_len_3 from len_expand_data_vu where substring(sample_no,3,2)=@expandyr
-				tempLen3 = rbind(tempLen3, dbGetQuery(mCon, sprintf('select * from len_expand_data_vu where substring(sample_no,3,2)=%d', twoDigitYear)) )
+				tempLen3 = rbind(tempLen3, RJDBC::dbGetQuery(mCon, sprintf('select * from len_expand_data_vu where substring(sample_no,3,2)=%d', twoDigitYear)) )
 				
 				#4) select sample_no, species, flength, age, sex into temp_len_4 from master_fish where substring(sample_no,3,2)=@expandyr
-				tempLen4 = rbind(tempLen4, dbGetQuery(mCon, sprintf('
+				tempLen4 = rbind(tempLen4, RJDBC::dbGetQuery(mCon, sprintf('
 				                select 
 				                        sample_no, 
 				                        species, 
@@ -484,7 +480,7 @@ estLenComp = function(calcomLenData, portBorr=portMatrix, files=T){
 				#avoids warning if null
 				if(length(fish$flength[fish$flength>0])==0 | length(fish$sex[fish$flength>0])==0){ next }
 		                #
-				h = hist2(fish$flength[fish$flength>0], fish$sex[fish$flength>0], xbreaks=0:151, ybreaks=c(1,2,3,9), plot=F)
+				h = squash::hist2(fish$flength[fish$flength>0], fish$sex[fish$flength>0], xbreaks=0:151, ybreaks=c(1,2,3,9), plot=F)
 				hz = h$z
 		                hz[is.na(hz)] = 0
 		                #weight by landings
@@ -728,7 +724,7 @@ estLenCompDoc = function(calcomLenData, doc=sprintf("lendoc%s.csv", unique(calco
 				#avoids warning if null
         	                if(length(fish$flength[fish$flength>0])==0 | length(fish$sex[fish$flength>0])==0){ next }
 				#
-		                h = hist2(fish$flength[fish$flength>0], fish$sex[fish$flength>0], xbreaks=0:151, ybreaks=c(1,2,3,9), plot=F)
+		                h = squash::hist2(fish$flength[fish$flength>0], fish$sex[fish$flength>0], xbreaks=0:151, ybreaks=c(1,2,3,9), plot=F)
 		                hz = h$z
 		                hz[is.na(hz)] = 0
 		                #weight by landings
@@ -798,9 +794,9 @@ year = 2022 #2013:2015 #2020 #c(2021, 2022) #2021 #
 #NOTE 2000,?2001?: no samples? no actuals
 
 #
-calcomLenDat = getCalcomLenData(year, save=T) #, fromFile=T) #
+calcomLenDat = getCalcomLenData(year, save=T, fromFile=T) #
 #
 lenExp1 = estLenComp(calcomLenDat, files=T)
-lenExp2 = estLenCompLenDoc(calcomLenDat) #, files=T)
+lenExp2 = estLenCompDoc(calcomLenDat) #, files=T)
 
 

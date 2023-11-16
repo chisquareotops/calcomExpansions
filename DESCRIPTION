@@ -15,7 +15,7 @@ RoxygenNote: 7.1.2
 Imports: 
 	RJDBC,
 	lares,
-	dplyr,
+	squash,
 	getPass
 
 Depends: 

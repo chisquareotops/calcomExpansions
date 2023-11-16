@@ -8,10 +8,11 @@
 #
 #upon installing RJDBC you may need to run "R CMD javareconf" command in the 
 #terminal as root to add Java support to R.
-suppressMessages(library(RJDBC, quietly=FALSE))
-suppressMessages(library(lares, quietly=FALSE))
-suppressMessages(library(dplyr, quietly=FALSE))
-suppressMessages(library(getPass, quietly=FALSE))
+
+#suppressMessages(library(RJDBC, quietly=FALSE)) #JDBC, dbSendUpdate, maybe DBI: dbConnect, dbExistsTable, dbWriteTable
+#suppressMessages(library(lares, quietly=FALSE)) #warnifnot
+#suppressMessages(library(dplyr, quietly=FALSE)) #appearantly not used
+#suppressMessages(library(getPass, quietly=FALSE)) #getPass
 
 #
 #ANCILLARY FUNCTIONS
@@ -88,9 +89,9 @@ backup = function(con, dbName, force=F){
 	backupName = sprintf("xxx_%s_BAK_%s", dbName, dateStamp)	
 	
 	#check is backup exists
-	if( !dbExistsTable(con, backupName) ){	
+	if( !RJDBC::dbExistsTable(con, backupName) ){	
 		#do backup
-		dbSendUpdate(con, sprintf("select * into %s from %s", backupName, dbName))
+		RJDBC::dbSendUpdate(con, sprintf("select * into %s from %s", backupName, dbName))
 		
 		#report that backup was done
 		return(T)
@@ -99,12 +100,12 @@ backup = function(con, dbName, force=F){
 	#force a backup
 	if( force ){
 		#a backup may or not exists when forcing
-		if( dbExistsTable(con, backupName) ){ 
-			dbSendUpdate(con, sprintf("DROP TABLE %s", backupName)) 
+		if( RJDBC::dbExistsTable(con, backupName) ){ 
+			RJDBC::dbSendUpdate(con, sprintf("DROP TABLE %s", backupName)) 
 		}
 		
 		#do backup
-                dbSendUpdate(con, sprintf("select * into %s from %s", backupName, dbName))
+                RJDBC::dbSendUpdate(con, sprintf("select * into %s from %s", backupName, dbName))
 		
 		#report that backup was done
                 return(T)
@@ -156,16 +157,16 @@ getPacfinData = function(year, save=F, fromFile=F){
 				# Create Oracle connection driver and open connection to PacFIN
 				# PacFIN is an Oracle sql server on the NOAA VPN (Not the psmfc VPN)
 				# ojdbc8.jar downloaded from https://www.oracle.com/database/technologies/appdev/jdbc-downloads.html
-				oDrv = JDBC(driverClass='oracle.jdbc.OracleDriver', classPath='./ojdbc8.jar', identifier.quote="'")
+				oDrv = RJDBC::JDBC(driverClass='oracle.jdbc.OracleDriver', classPath='./ojdbc8.jar', identifier.quote="'")
 				#PacFIN connection
 				writeLines("\nReading PacFIN Species Data From PacFIN Connection...")
 				#template connection string:"jdbc:oracle:thin:@//database.hostname.com:port/service_name_or_sid"
-				oCon = dbConnect(oDrv, 'jdbc:oracle:thin:@//pacfindb.psmfc.org:2045/pacfin.psmfc.org', getPass('PacFIN User: '), getPass('Password: ')) 
+				oCon = RJDBC::dbConnect(oDrv, 'jdbc:oracle:thin:@//pacfindb.psmfc.org:2045/pacfin.psmfc.org', getPass::getPass('PacFIN User: '), getPass::getPass('Password: ')) 
 				
 				#
 				pacfinTix = c()
 				for(y in year){
-					pacfinTix = rbind(pacfinTix, dbGetQuery(oCon,
+					pacfinTix = rbind(pacfinTix, RJDBC::dbGetQuery(oCon,
 					       sprintf("
 					               select 
 					                       landing_year            as yr, 
@@ -274,15 +275,15 @@ getCalcomData = function(year, save=F, fromFile=F){
 				# Create microsoft sql connection driver and open connection to CALCOM
 				# CALCOM is an MS-SQL server on the PSMFC VPN
 				# sqljdbc4.jar file is required for creating the microsoft sql driver
-				mDrv = JDBC('com.microsoft.sqlserver.jdbc.SQLServerDriver', './sqljdbc4.jar', identifier.quote="'")
+				mDrv = RJDBC::JDBC('com.microsoft.sqlserver.jdbc.SQLServerDriver', './sqljdbc4.jar', identifier.quote="'")
 				# CALCOM connection
 				writeLines("\nReading CALCOM Species Data From CALCOM Connection...")                  #CALCOM_test
-				mCon = dbConnect(mDrv, 'jdbc:sqlserver://sql2016.psmfc.org\\calcom;databaseName=CALCOM', getPass('CALCOM User: '), getPass('Password: '))
+				mCon = RJDBC::dbConnect(mDrv, 'jdbc:sqlserver://sql2016.psmfc.org\\calcom;databaseName=CALCOM', getPass::getPass('CALCOM User: '), getPass::getPass('Password: '))
 					
 				#get calcom tables
-				gearCodes = dbGetQuery(mCon,"select * from pacfin_gear_codes")
-				portCodes = dbGetQuery(mCon,"select * from pacfin_port_codes")
-				nmSpCodes = dbGetQuery(mCon,"select * from market_categories")
+				gearCodes = RJDBC::dbGetQuery(mCon,"select * from pacfin_gear_codes")
+				portCodes = RJDBC::dbGetQuery(mCon,"select * from pacfin_port_codes")
+				nmSpCodes = RJDBC::dbGetQuery(mCon,"select * from market_categories")
 				#test = dbGetQuery(mCon,"select * from temp_lrcpt")
 					
 				#clean data: trim white space & cast as all uppercase
@@ -302,17 +303,17 @@ getCalcomData = function(year, save=F, fromFile=F){
 					
 					#2) select * from ann_samp_vu where right(@expandyr,2)=substring(samp_no,3,2)
 					#Getting Sample Data by joining MASTER_SAMPLES and MASTR_CLUSTS
-					temp1 = rbind(temp1, dbGetQuery(mCon, sprintf('select * from ann_samp_vu where %d=substring(samp_no,3,2)', twoDigitYear)) )
+					temp1 = rbind(temp1, RJDBC::dbGetQuery(mCon, sprintf('select * from ann_samp_vu where %d=substring(samp_no,3,2)', twoDigitYear)) )
 					
 					#3) select * from samp_strat_vu where right(@expandyr,2)=yr order by port_complex, live_fish, gear_grp, mark_cat, qrtr
 					#samp_strat_vu summarizes the number of samples (not including clusters) at each strata
                 			#samp_strat_vu is only a function of MASTER_SAMPLES
-					temp2 = rbind(temp2, dbGetQuery(mCon, sprintf('select * from samp_strat_vu where %d=yr order by port_complex, live_fish, gear_grp, mark_cat, qrtr', twoDigitYear)) )
+					temp2 = rbind(temp2, RJDBC::dbGetQuery(mCon, sprintf('select * from samp_strat_vu where %d=yr order by port_complex, live_fish, gear_grp, mark_cat, qrtr', twoDigitYear)) )
 					
 					#4) select distinct mark_cat from master_samples where substring(sample_no,3,2)=right(@expandyr,2)
 					#NOTE: say in english 
 					#NOTE: Confirm that master_samples is not a function of temp_lrpt
-					mcat_list = rbind(mcat_list, cbind(year=y, dbGetQuery(mCon, sprintf('select distinct mark_cat from master_samples where substring(sample_no,3,2)=%d', twoDigitYear)) ))
+					mcat_list = rbind(mcat_list, cbind(year=y, RJDBC::dbGetQuery(mCon, sprintf('select distinct mark_cat from master_samples where substring(sample_no,3,2)=%d', twoDigitYear)) ))
 					
 					#5) requires both pacfin and calcom data, thus this error checking is done in the expandSpCompToLandings() function 
 				}
@@ -323,8 +324,8 @@ getCalcomData = function(year, save=F, fromFile=F){
 				temp2$qtr = as.numeric(temp2$qtr)
 
 				#
-				species_codes = dbGetQuery(mCon, 'select * from species_codes')
-				market_categories = dbGetQuery(mCon, 'select * from market_categories')
+				species_codes = RJDBC::dbGetQuery(mCon, 'select * from species_codes')
+				market_categories = RJDBC::dbGetQuery(mCon, 'select * from market_categories')
 				
 				#
 				
@@ -507,10 +508,10 @@ export = function(exp, human=T, pacfin=T, calcom=F, doc=NULL){
 				# Create microsoft sql connection driver and open connection to CALCOM
 				# CALCOM is an MS-SQL server on the PSMFC VPN
 				# sqljdbc4.jar file is required for creating the microsoft sql driver
-				mDrv = JDBC('com.microsoft.sqlserver.jdbc.SQLServerDriver', './sqljdbc4.jar', identifier.quote="'")
+				mDrv = RJDBC::JDBC('com.microsoft.sqlserver.jdbc.SQLServerDriver', './sqljdbc4.jar', identifier.quote="'")
 				# CALCOM connection
 				writeLines("\nWriting Expansion to CALCOM Connection...")                  #CALCOM_test
-				mCon = dbConnect(mDrv, 'jdbc:sqlserver://sql2016.psmfc.org\\calcom;databaseName=CALCOM', getPass('CALCOM User: '), getPass('Password: '))
+				mCon = RJDBC::dbConnect(mDrv, 'jdbc:sqlserver://sql2016.psmfc.org\\calcom;databaseName=CALCOM', getPass::getPass('CALCOM User: '), getPass::getPass('Password: '))
 				
 				#
 				#dbWriteTable(ch, "bigNewIPTest", dat, row.names=F, overwrite=T)
@@ -553,12 +554,12 @@ export = function(exp, human=T, pacfin=T, calcom=F, doc=NULL){
 					toComLands$SOURCE = sourceMatrix[toComLands$SOURCE]	
 					
 					#COM_LANDS
-					dbSendUpdate(mCon, sprintf("DELETE from COM_LANDS where year=%s", year) )
-					dbWriteTable(mCon, "COM_LANDS", toComLands, row.names=F, append=T, overwrite=F)
+					RJDBC::dbSendUpdate(mCon, sprintf("DELETE from COM_LANDS where year=%s", year) )
+					RJDBC::dbWriteTable(mCon, "COM_LANDS", toComLands, row.names=F, append=T, overwrite=F)
 					
 					#COMP_EXPAND_DOCS
-					dbSendUpdate(mCon, sprintf("DELETE from COMP_EXPAND_DOCS where year=%s", year) )
-					dbWriteTable(mCon, "COMP_EXPAND_DOCS", docs[[y]], row.names=F, append=T, overwrite=F)
+					RJDBC::dbSendUpdate(mCon, sprintf("DELETE from COMP_EXPAND_DOCS where year=%s", year) )
+					RJDBC::dbWriteTable(mCon, "COMP_EXPAND_DOCS", docs[[y]], row.names=F, append=T, overwrite=F)
 					
 					##
 					#unknowns = c('URCK', 'USHR', 'RCK3', 'RCK6', 'RBR1', 'RCK8', 'RCK9', 'USLF', 'USLP', 'UDNR')
@@ -653,9 +654,9 @@ estSppComp = function(pacfinData, calcomData, portBorr=portMatrix, qtrBorr=qtrMa
 		for( j in 1:nrow(portCodes) ){ temp$port_complex[pacfinDataY$PORT==portCodes$PCID[j]] = portCodes$port_complex[j] }
 		for( j in 1:nrow(nmSpCodes) ){ temp$nominal_species[pacfinDataY$MCAT==nmSpCodes$mark_cat[j]] = nmSpCodes$nominal_species[j] }
 		#warn the user if pacfin contains gears, ports, mcats that calcom does not
-		warnifnot( all(pacfinDataY$GEAR%in%gearCodes$GRID) )
-		warnifnot( all(pacfinDataY$PORT%in%portCodes$PCID) )
-		warnifnot( all(pacfinDataY$MCAT%in%nmSpCodes$mark_cat) )
+		lares::warnifnot( all(pacfinDataY$GEAR%in%gearCodes$GRID) )
+		lares::warnifnot( all(pacfinDataY$PORT%in%portCodes$PCID) )
+		lares::warnifnot( all(pacfinDataY$MCAT%in%nmSpCodes$mark_cat) )
 
 		#define quarters from months
 		#for(q in 0:3){ temp$qtr[ pacfinTix$MON%in%c((q*3+1):(q*3+3)) ]=q+1 }
@@ -665,7 +666,7 @@ estSppComp = function(pacfinData, calcomData, portBorr=portMatrix, qtrBorr=qtrMa
 		temp$qtr[ pacfinDataY$MON %in% c(7,8,9)   ] = 3
 		temp$qtr[ pacfinDataY$MON %in% c(10,11,12)] = 4
 		#warn the user if pacfin contains a month that is not a month (key punch error)
-		warnifnot( all(pacfinDataY$MON%in%1:12) )
+		lares::warnifnot( all(pacfinDataY$MON%in%1:12) )
 		
 		#live/no live condition
 		# 'Y'=live
@@ -754,16 +755,16 @@ estSppComp = function(pacfinData, calcomData, portBorr=portMatrix, qtrBorr=qtrMa
 		samp$qtr[ samp$mon %in% c(7,8,9)   ] = 3 
 		samp$qtr[ samp$mon %in% c(10,11,12)] = 4
 		#warn the user if sample key punch error in sample month
-		warnifnot( all(samp$MON%in%1:12) )
+		lares::warnifnot( all(samp$MON%in%1:12) )
 		
 		#dump samples
 		samp = samp[samp$mark_cat!=0,]
 		samp = samp[samp$tot_wgt!=0,]
 		samp = samp[samp$sp_wgt!=0,] # one sample in 2019 records a weight of zero and is dropped
 		#NOTE: does not drop NA or NULL, probably should throw a warning in this case
-		warnifnot( all(is.numeric(samp$mark_cat)) )
-		warnifnot( all(is.numeric(samp$tot_wgt)) )
-		warnifnot( all(is.numeric(samp$sp_wgt)) )
+		lares::warnifnot( all(is.numeric(samp$mark_cat)) )
+		lares::warnifnot( all(is.numeric(samp$tot_wgt)) )
+		lares::warnifnot( all(is.numeric(samp$sp_wgt)) )
 		
 		#Summing over cluster here to clean up work later
 		samp = aggregate(samp$sp_wgt, by=samp[,-c(2,3,10)], FUN=sum)
@@ -1170,9 +1171,9 @@ estSppCompDoc = function(pacfinData, calcomData, doc=sprintf("sppdoc%s.csv", uni
 		for( j in 1:nrow(portCodes) ){ temp$port_complex[pacfinDataY$PORT==portCodes$PCID[j]] = portCodes$port_complex[j] }
 		for( j in 1:nrow(nmSpCodes) ){ temp$nominal_species[pacfinDataY$MCAT==nmSpCodes$mark_cat[j]] = nmSpCodes$nominal_species[j] }
 		#warn the user if pacfin contains gears, ports, mcats that calcom does not
-		warnifnot( all(pacfinDataY$GEAR%in%gearCodes$GRID) )
-		warnifnot( all(pacfinDataY$PORT%in%portCodes$PCID) )
-		warnifnot( all(pacfinDataY$MCAT%in%nmSpCodes$mark_cat) )
+		lares::warnifnot( all(pacfinDataY$GEAR%in%gearCodes$GRID) )
+		lares::warnifnot( all(pacfinDataY$PORT%in%portCodes$PCID) )
+		lares::warnifnot( all(pacfinDataY$MCAT%in%nmSpCodes$mark_cat) )
 
 		#define quarters from months
 		#for(q in 0:3){ temp$qtr[ pacfinTix$MON%in%c((q*3+1):(q*3+3)) ]=q+1 }
@@ -1182,7 +1183,7 @@ estSppCompDoc = function(pacfinData, calcomData, doc=sprintf("sppdoc%s.csv", uni
 		temp$qtr[ pacfinDataY$MON %in% c(7,8,9)   ] = 3
 		temp$qtr[ pacfinDataY$MON %in% c(10,11,12)] = 4
 		#warn the user if pacfin contains a month that is not a month (key punch error)
-		warnifnot( all(pacfinDataY$MON%in%1:12) )
+		lares::warnifnot( all(pacfinDataY$MON%in%1:12) )
 		
 		#live/no live condition
 		# 'Y'=live
@@ -1272,16 +1273,16 @@ estSppCompDoc = function(pacfinData, calcomData, doc=sprintf("sppdoc%s.csv", uni
 		samp$qtr[ samp$mon %in% c(7,8,9)   ] = 3 
 		samp$qtr[ samp$mon %in% c(10,11,12)] = 4
 		#warn the user if sample key punch error in sample month
-		warnifnot( all(samp$MON%in%1:12) )
+		lares::warnifnot( all(samp$MON%in%1:12) )
 		
 		#dump samples
 		samp = samp[samp$mark_cat!=0,]
 		samp = samp[samp$tot_wgt!=0,]
 		samp = samp[samp$sp_wgt!=0,] # one sample in 2019 records a weight of zero and is dropped
 		#NOTE: does not drop NA or NULL, probably should throw a warning in this case
-		warnifnot( all(is.numeric(samp$mark_cat)) )
-		warnifnot( all(is.numeric(samp$tot_wgt)) )
-		warnifnot( all(is.numeric(samp$sp_wgt)) )
+		lares::warnifnot( all(is.numeric(samp$mark_cat)) )
+		lares::warnifnot( all(is.numeric(samp$tot_wgt)) )
+		lares::warnifnot( all(is.numeric(samp$sp_wgt)) )
 		
 		#Summing over cluster here to clean up work later
 		samp = aggregate(samp$sp_wgt, by=samp[,-c(2,3,10)], FUN=sum)
@@ -1612,9 +1613,9 @@ year = 2022 #2018:2022 #2019 #2021 # #2010 #1981:2012 #1981:2021 #2019:2021 #200
 #  replacement has 1 row, data has 0
 
 #
-pacfinTix = getPacfinData(year, save=T, fromFile=F)
+pacfinTix = getPacfinData(year, save=T, fromFile=T)
 #
-calcomDat = getCalcomData(year, save=T, fromFile=F)
+calcomDat = getCalcomData(year, save=T, fromFile=T)
 
 #
 sppExp = estSppComp(pacfinTix, calcomDat, files=T)
