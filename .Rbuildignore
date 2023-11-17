@@ -3,3 +3,4 @@
 ^drivers$
 ^buildSelf\.r$
 ^data-raw$
+^README\.Rmd$
