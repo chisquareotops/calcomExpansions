@@ -8,6 +8,7 @@ Authors@R:
              role = c("aut", "cre"),
              email = "nick.grunloh@noaa.gov"))
 Description: A automated version of Don's Visual Basic calcom expansion code rewritten in R. 
+License: file LICENSE
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
@@ -15,9 +16,8 @@ RoxygenNote: 7.1.2
 Imports: 
 	RJDBC,
 	lares,
+	dplyr,
 	squash,
 	getPass
-
 Depends: 
 	R (>= 2.10)
-	?Java?

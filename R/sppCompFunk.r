@@ -64,8 +64,8 @@ pacfinPortCode = function(port){
 #
 expDiff = function(exp1, exp2, by=NULL){
 	#
-	exp2Needs = suppressMessages(anti_join(exp1, exp2, by=by))
-	exp1Needs = suppressMessages(anti_join(exp2, exp1, by=by))
+	exp2Needs = suppressMessages(dplyr::anti_join(exp1, exp2, by=by))
+	exp1Needs = suppressMessages(dplyr::anti_join(exp2, exp1, by=by))
 	#matchup diffs into a single data struture somehow
 	return(list(twoNeeds=exp2Needs, oneNeeds=exp1Needs))
 }
@@ -301,16 +301,16 @@ getCalcomData = function(year, save=F, fromFile=F){
 		
 					#1) is not a datbase call
 					
-					#2) select * from ann_samp_vu where right(@expandyr,2)=substring(samp_no,3,2)
+					#2) select * from ann_samp_vu where right([AT]expandyr,2)=substring(samp_no,3,2)
 					#Getting Sample Data by joining MASTER_SAMPLES and MASTR_CLUSTS
 					temp1 = rbind(temp1, RJDBC::dbGetQuery(mCon, sprintf('select * from ann_samp_vu where %d=substring(samp_no,3,2)', twoDigitYear)) )
 					
-					#3) select * from samp_strat_vu where right(@expandyr,2)=yr order by port_complex, live_fish, gear_grp, mark_cat, qrtr
+					#3) select * from samp_strat_vu where right([AT]expandyr,2)=yr order by port_complex, live_fish, gear_grp, mark_cat, qrtr
 					#samp_strat_vu summarizes the number of samples (not including clusters) at each strata
                 			#samp_strat_vu is only a function of MASTER_SAMPLES
 					temp2 = rbind(temp2, RJDBC::dbGetQuery(mCon, sprintf('select * from samp_strat_vu where %d=yr order by port_complex, live_fish, gear_grp, mark_cat, qrtr', twoDigitYear)) )
 					
-					#4) select distinct mark_cat from master_samples where substring(sample_no,3,2)=right(@expandyr,2)
+					#4) select distinct mark_cat from master_samples where substring(sample_no,3,2)=right([AT]expandyr,2)
 					#NOTE: say in english 
 					#NOTE: Confirm that master_samples is not a function of temp_lrpt
 					mcat_list = rbind(mcat_list, cbind(year=y, RJDBC::dbGetQuery(mCon, sprintf('select distinct mark_cat from master_samples where substring(sample_no,3,2)=%d', twoDigitYear)) ))
@@ -545,7 +545,7 @@ export = function(exp, human=T, pacfin=T, calcom=F, doc=NULL){
 				#update SQL
                 		for(y in years){					
 					#
-					toComLands = exp[exp$year==year, c('year', 'qtr', 'disp', 'mcat', 'gear', 'port', 'spp', 'lands', 'source')]
+					toComLands = exp[exp$year==y, c('year', 'qtr', 'disp', 'mcat', 'gear', 'port', 'spp', 'lands', 'source')]
 					colnames(toComLands) = c('YEAR', 'QUARTER', 'LIVE', 'MARK_CAT', 'GEAR_GRP', 'PORT_COMPLEX', 'SPECIES', 'POUNDS', 'SOURCE')
 					toComLands = toComLands[toComLands$SPECIES!='OMIT',]
 					toComLands$SPECIES_GRP = NA
@@ -554,11 +554,11 @@ export = function(exp, human=T, pacfin=T, calcom=F, doc=NULL){
 					toComLands$SOURCE = sourceMatrix[toComLands$SOURCE]	
 					
 					#COM_LANDS
-					RJDBC::dbSendUpdate(mCon, sprintf("DELETE from COM_LANDS where year=%s", year) )
+					RJDBC::dbSendUpdate(mCon, sprintf("DELETE from COM_LANDS where year=%s", y) )
 					RJDBC::dbWriteTable(mCon, "COM_LANDS", toComLands, row.names=F, append=T, overwrite=F)
 					
 					#COMP_EXPAND_DOCS
-					RJDBC::dbSendUpdate(mCon, sprintf("DELETE from COMP_EXPAND_DOCS where year=%s", year) )
+					RJDBC::dbSendUpdate(mCon, sprintf("DELETE from COMP_EXPAND_DOCS where year=%s", y) )
 					RJDBC::dbWriteTable(mCon, "COMP_EXPAND_DOCS", docs[[y]], row.names=F, append=T, overwrite=F)
 					
 					##
@@ -619,9 +619,9 @@ estSppComp = function(pacfinData, calcomData, portBorr=portMatrix, qtrBorr=qtrMa
 	#DEAL W/ YEAR
 
 	#
-	calcomT1Year = as.numeric(unique(substr(calcomDat$temp1$samp_no, 1, 4)))
-	calcomT2Year = as.numeric(unique(calcomDat$temp2$yr))
-	calcomMYear = unique(calcomDat$mcat_list$year)
+	calcomT1Year = as.numeric(unique(substr(calcomData$temp1$samp_no, 1, 4)))
+	calcomT2Year = as.numeric(unique(calcomData$temp2$yr))
+	calcomMYear = unique(calcomData$mcat_list$year)
 	pacfinYear = unique(pacfinData$YR)
 	#4 choose 2 comparisons to make sure all the years are the same in all the data sources
 	stopifnot( calcomT1Year%%100 %in% calcomT2Year )
@@ -635,9 +635,9 @@ estSppComp = function(pacfinData, calcomData, portBorr=portMatrix, qtrBorr=qtrMa
 	expLand = c()
 	for(year in pacfinYear){
 		#
-		temp1Y = calcomDat$temp1[as.numeric(substr(calcomDat$temp1$samp_no, 1, 4))==year,]
-		temp2Y = calcomDat$temp2[as.numeric(calcomDat$temp2$yr)==year%%100,]
-		mcat_listY = calcomDat$mcat_list[calcomDat$mcat_list$year==year,]
+		temp1Y = calcomData$temp1[as.numeric(substr(calcomData$temp1$samp_no, 1, 4))==year,]
+		temp2Y = calcomData$temp2[as.numeric(calcomData$temp2$yr)==year%%100,]
+		mcat_listY = calcomData$mcat_list[calcomData$mcat_list$year==year,]
 		pacfinDataY = pacfinData[pacfinData$YR==year,]
 	
 		#MAKE TEMP
@@ -687,12 +687,12 @@ estSppComp = function(pacfinData, calcomData, portBorr=portMatrix, qtrBorr=qtrMa
 		colnames(nomPink)[7] = 'lbs'
 		nomPink$mcat = as.numeric(nomPink$mcat)
 		
-		#2) select * from ann_samp_vu where right(@expandyr,2)=substring(samp_no,3,2)	
+		#2) select * from ann_samp_vu where right([AT]expandyr,2)=substring(samp_no,3,2)	
 		#Getting Sample Data but joining MASTER_SAMPLES and MASTR_CLUSTS
 		#formerly temp1
 		samp = temp1Y
 		
-		#3) select * from samp_strat_vu where right(@expandyr,2)=yr order by port_complex, live_fish, gear_grp, mark_cat, qrtr	
+		#3) select * from samp_strat_vu where right([AT]expandyr,2)=yr order by port_complex, live_fish, gear_grp, mark_cat, qrtr	
 		#samp_strat_vu summarizes the number of samples (not including clusters) at each strata
 		#samp_strat_vu is only a function of MASTER_SAMPLES
 		#formerly temp2
@@ -701,7 +701,7 @@ estSppComp = function(pacfinData, calcomData, portBorr=portMatrix, qtrBorr=qtrMa
 		#sampstrat codes qtr in a more expected way
 		sampstrat$qtr = sampstrat$qtr+1
 
-		#4) select distinct mark_cat from master_samples where substring(sample_no,3,2)=right(@expandyr,2)
+		#4) select distinct mark_cat from master_samples where substring(sample_no,3,2)=right([AT]expandyr,2)
 		#NOTE: say in english
 		#NOTE: Confirm that master_samples is not a function of temp_lrpt
 		mcat_list = mcat_listY
@@ -1099,7 +1099,7 @@ estSppComp = function(pacfinData, calcomData, portBorr=portMatrix, qtrBorr=qtrMa
 }
 
 #
-estSppCompDoc = function(pacfinData, calcomData, doc=sprintf("sppdoc%s.csv", unique(pacfinData$YR)), files=T){
+estSppCompDoc = function(pacfinData, calcomData, doc=sprintf("sppdoc%s.csv", unique(pacfinData$YR)), qtrBorr=qtrMatrix, files=T){
 	#pacfinData : a data.frame as returned by getPacfinData
 	#calcomData : a list as returned by getCalcomData
 	#doc      : a filename (or vector of filenames for multiple years) of a CSV file to define which data are used to expand which strata.
@@ -1121,9 +1121,9 @@ estSppCompDoc = function(pacfinData, calcomData, doc=sprintf("sppdoc%s.csv", uni
 	#DEAL W/ YEAR
 
 	#
-	calcomT1Year = as.numeric(unique(substr(calcomDat$temp1$samp_no, 1, 4)))
-	calcomT2Year = as.numeric(unique(calcomDat$temp2$yr))
-	calcomMYear = unique(calcomDat$mcat_list$year)
+	calcomT1Year = as.numeric(unique(substr(calcomData$temp1$samp_no, 1, 4)))
+	calcomT2Year = as.numeric(unique(calcomData$temp2$yr))
+	calcomMYear = unique(calcomData$mcat_list$year)
 	pacfinYear = unique(pacfinData$YR)
 	#4 choose 2 comparisons to make sure all the years are the same in all the data sources
 	stopifnot( calcomT1Year%%100 %in% calcomT2Year )
@@ -1150,9 +1150,9 @@ estSppCompDoc = function(pacfinData, calcomData, doc=sprintf("sppdoc%s.csv", uni
 	expLand = c()
 	for(year in pacfinYear){
 		#parsing out the yearly data structures
-		temp1Y = calcomDat$temp1[as.numeric(substr(calcomDat$temp1$samp_no, 1, 4))==year,]
-		temp2Y = calcomDat$temp2[as.numeric(calcomDat$temp2$yr)==year%%100,]
-		mcat_listY = calcomDat$mcat_list[calcomDat$mcat_list$year==year,]
+		temp1Y = calcomData$temp1[as.numeric(substr(calcomData$temp1$samp_no, 1, 4))==year,]
+		temp2Y = calcomData$temp2[as.numeric(calcomData$temp2$yr)==year%%100,]
+		mcat_listY = calcomData$mcat_list[calcomData$mcat_list$year==year,]
 		pacfinDataY = pacfinData[pacfinData$YR==year,]
 		#	
 		docY = docs[[year]]
@@ -1204,12 +1204,12 @@ estSppCompDoc = function(pacfinData, calcomData, doc=sprintf("sppdoc%s.csv", uni
 		colnames(nomPink)[7] = 'lbs'
 		nomPink$mcat = as.numeric(nomPink$mcat)
 		
-		#2) select * from ann_samp_vu where right(@expandyr,2)=substring(samp_no,3,2)
+		#2) select * from ann_samp_vu where right([AT]expandyr,2)=substring(samp_no,3,2)
 		#Getting Sample Data but joining MASTER_SAMPLES and MASTR_CLUSTS
                 #formerly temp1
 		samp = temp1Y	
 		
-		#3) select * from samp_strat_vu where right(@expandyr,2)=yr order by port_complex, live_fish, gear_grp, mark_cat, qrtr
+		#3) select * from samp_strat_vu where right([AT]expandyr,2)=yr order by port_complex, live_fish, gear_grp, mark_cat, qrtr
 		#samp_strat_vu summarizes the number of samples (not including clusters) at each strata
                 #samp_strat_vu is only a function of MASTER_SAMPLES
                 #formerly temp2
@@ -1218,7 +1218,7 @@ estSppCompDoc = function(pacfinData, calcomData, doc=sprintf("sppdoc%s.csv", uni
 		#sampstrat codes qtr in a more expected way
 		sampstrat$qtr = sampstrat$qtr+1
 
-		#4) select distinct mark_cat from master_samples where substring(sample_no,3,2)=right(@expandyr,2)
+		#4) select distinct mark_cat from master_samples where substring(sample_no,3,2)=right([AT]expandyr,2)
 		#NOTE: say in english
 		#NOTE: Confirm that master_samples is not a function of temp_lrpt
 		mcat_list = mcat_listY
@@ -1594,31 +1594,31 @@ portMatrix = matrix(
 colnames(portMatrix) = c('first', 'second', 'third', 'fourth', 'fifth')
 rownames(portMatrix) = c('CRS', 'ERK', 'BRG', 'BDG', 'OSF', 'MNT', 'MRO', 'OSB', 'OLA', 'OSD')
 
+##
+##TEST
+##
 #
-#TEST
+##probably a future argument
+#year = 2022 #2018:2022 #2019 #2021 # #2010 #1981:2012 #1981:2021 #2019:2021 #2000:2001 #
 #
-
-#probably a future argument
-year = 2022 #2018:2022 #2019 #2021 # #2010 #1981:2012 #1981:2021 #2019:2021 #2000:2001 #
-
-#issues in calcom in 1980 and before
-
-#grep "2010,.,N,147,TWL,CRS,.*" exdoc2010.csv 
-#2010,4,N,147,TWL,CRS appears twice. once using qtr 4 to expand and another to use qtr 3 to expand later
-#looks like there is a record in sampstrat in qtr 4, but only a samp in qtr 3
-#sampstrat summary does not match the actual samples in samp.
-
-#2013 error in exDocExpandSppToLand
-#Error in `$<-.data.frame`(`*tmp*`, "x", value = 34256) : 
-#  replacement has 1 row, data has 0
-
+##issues in calcom in 1980 and before
 #
-pacfinTix = getPacfinData(year, save=T, fromFile=T)
+##grep "2010,.,N,147,TWL,CRS,.*" exdoc2010.csv 
+##2010,4,N,147,TWL,CRS appears twice. once using qtr 4 to expand and another to use qtr 3 to expand later
+##looks like there is a record in sampstrat in qtr 4, but only a samp in qtr 3
+##sampstrat summary does not match the actual samples in samp.
 #
-calcomDat = getCalcomData(year, save=T, fromFile=T)
-
+##2013 error in exDocExpandSppToLand
+##Error in `$<-.data.frame`(`*tmp*`, "x", value = 34256) : 
+##  replacement has 1 row, data has 0
 #
-sppExp = estSppComp(pacfinTix, calcomDat, files=T)
-sppExpDoc = estSppCompDoc(pacfinTix, calcomDat) #, doc="exdoc2019NoOLVE.csv")
+##
+#pacfinTix = getPacfinData(year, save=T, fromFile=T)
+##
+#calcomDat = getCalcomData(year, save=T, fromFile=T)
+#
+##
+#sppExp = estSppComp(pacfinTix, calcomDat, files=T)
+#sppExpDoc = estSppCompDoc(pacfinTix, calcomDat) #, doc="exdoc2019NoOLVE.csv")
 
 

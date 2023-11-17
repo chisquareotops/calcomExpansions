@@ -779,24 +779,24 @@ portMatrix = matrix(
 colnames(portMatrix) = c('first', 'second', 'third', 'fourth', 'fifth')
 rownames(portMatrix) = c('CRS', 'ERK', 'BRG', 'BDG', 'OSF', 'MNT', 'MRO', 'OSB', 'OLA', 'OSD')
 
+##
+##TEST
+##
 #
-#TEST
+##
+##future inputs
+#year = 2022 #2013:2015 #2020 #c(2021, 2022) #2021 #
+##NOTE: throw an error if year less 1975
+##NOTE: 2016, 2017; OCA in lenuse$port[i]
+##NOTE: 2013: WARNING
+##1: In `[<-.data.frame`(`*tmp*`, i, c("borrSpecies", "borrLive", "borrGear",  :
+##  replacement element 1 has 2 rows to replace 1 rows
+##NOTE 2000,?2001?: no samples? no actuals
 #
-
-#
-#future inputs
-year = 2022 #2013:2015 #2020 #c(2021, 2022) #2021 #
-#NOTE: throw an error if year less 1975
-#NOTE: 2016, 2017; OCA in lenuse$port[i]
-#NOTE: 2013: WARNING
-#1: In `[<-.data.frame`(`*tmp*`, i, c("borrSpecies", "borrLive", "borrGear",  :
-#  replacement element 1 has 2 rows to replace 1 rows
-#NOTE 2000,?2001?: no samples? no actuals
-
-#
-calcomLenDat = getCalcomLenData(year, save=T, fromFile=T) #
-#
-lenExp1 = estLenComp(calcomLenDat, files=T)
-lenExp2 = estLenCompDoc(calcomLenDat) #, files=T)
+##
+#calcomLenDat = getCalcomLenData(year, save=T, fromFile=T) #
+##
+#lenExp1 = estLenComp(calcomLenDat, files=T)
+#lenExp2 = estLenCompDoc(calcomLenDat) #, files=T)
 
 

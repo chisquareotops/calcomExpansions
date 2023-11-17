@@ -1,2 +1,5 @@
 # Export all names
 exportPattern(".")
+# From Notes
+importFrom("stats", "aggregate")
+importFrom("utils", "glob2rx", "read.csv", "write.csv", "write.table")
