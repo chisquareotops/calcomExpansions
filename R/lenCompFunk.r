@@ -95,6 +95,9 @@ getCalcomLenData = function(year, save=F, fromFile=F){
         #
         #value    : returns a list of all of the various objects in calcom needed to compute an expansion in the given year.
 
+	#check drivers
+        getDrivers()
+	
         #error if the given year is before the data would exist (also catches two digit years)
         stopifnot( year>=1975 )
         #year should not be fractional

@@ -88,6 +88,24 @@ expDiff = function(exp1, exp2, by=NULL){
 #DATABASE FUNCTIONS
 #
 
+#' A function primarily for internal use that checks to make sure the database drivers are in place. Requires an internet connection to download.
+getDrivers = function(){
+	#check is driver exist
+        if( !all(file.exists("sqljdbc4.jar", "ojdbc8.jar")) ){
+		#
+		writeLines("\nDownloading Database Drivers...")
+		#if not download them into the current working ditrectory. This is where the rest of the code expects them. Any code that needs them will probably need an internet connection anyway
+		utils::download.file(
+			url="https://github.com/chisquareotops/calcomExpansions/raw/main/drivers/sqljdbc4.jar",
+			destfile = "sqljdbc4.jar"
+		)
+		utils::download.file(
+			url="https://github.com/chisquareotops/calcomExpansions/raw/main/drivers/ojdbc8.jar",
+			destfile = "ojdbc8.jar"
+		)
+	}
+}
+
 #' A function primarily for internal use that performs a default backup of COM_LANDS and COMP_EXPAND_DOCS
 #' 
 #' @param con 	An RJDBC connection to an SQL database
@@ -104,6 +122,9 @@ backup = function(con, dbName, force=F){ #overwrite?
 		#xxx_COM_LANDS_BAK_YYYYMMDD
 		#select * into xxx_COM_LANDS_BAK_YYYYMMDD from com_lands 
 		#xxx_COMP_EXPAND_DOCS_BAK_YYYYMMDD
+	
+	#check drivers
+	getDrivers()
 	
 	#
 	dateStamp = format(Sys.time(), "%Y%m%d")  #"20190416" #
@@ -158,6 +179,9 @@ getPacfinSppData = function(year, save=F, fromFile=F){
 	#		True defaults to the most recent sprintf('pacfin%sSppData*', year) file; False (Default) reads data from pacfin.
 	#
 	#value	  : returns fish ticket data from pacfin
+	
+	#check drivers
+	getDrivers()
 	
 	#error if the given year is before the data would exist (also catches two digit years)
 	stopifnot( year>=1975 )
@@ -282,7 +306,10 @@ getCalcomSppData = function(year, save=F, fromFile=F){
 	#		True defaults to the most recent sprintf('calcom%sData*', year) file; False (Default) reads data from calcom.
 	#
 	#value	  : returns a list of all of the various objects in calcom needed to compute an expansion in the given year.
-
+	
+	#check drivers
+	getDrivers()
+	
 	#error if the given year is before the data would exist (also catches two digit years)
 	stopifnot( year>=1975 )
 	#year should not be fractional
@@ -555,6 +582,9 @@ exportSpp = function(exp, human=T, pacfin=T, calcom=F, doc=NULL){
 	
 	#propogate calcom SQL tables: 
 	if( calcom ){
+		#
+		getDrivers()
+		
 		#
 		if( length(doc)!=length(years) ){
 			stop(sprintf("\n\tdoc filename must be specified for each year expanded when calcom==T"))
