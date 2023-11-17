@@ -2,3 +2,4 @@
 ^sppCompQuick\.tex$
 ^drivers$
 ^buildSelf\.r$
+^data-raw$

@@ -20,7 +20,9 @@
 #ANCILLARY FUCNTIONS
 #
 
-#
+#' A function primarily for internal use that returns the number of port complex away a given target port is from a hypothetical borrowed port. 
+#' @param tar target port
+#' @param bor borrowed port
 howFar = function(tar, bor){
         #
         map = c('CRS', 'ERK', 'BRG', 'BDG', 'OSF', 'MNT', 'MRO', 'OSB', 'OLA', 'OSD')
@@ -32,34 +34,34 @@ howFar = function(tar, bor){
 }
 howFar = Vectorize(howFar, 'bor')
 
+## Not currently used but it will be nice to remove the squash dependency
+#base2DHist = function(df, xbins, ybins, freak=F){
+#        # https://www.r-bloggers.com/2014/09/5-ways-to-do-2d-histograms-in-r/
+#        # http://stackoverflow.com/questions/18089752/r-generate-2d-histogram-from-raw-data
 #
-base2DHist = function(df, xbins, ybins, freak=F){
-        # https://www.r-bloggers.com/2014/09/5-ways-to-do-2d-histograms-in-r/
-        # http://stackoverflow.com/questions/18089752/r-generate-2d-histogram-from-raw-data
-
-        #
-        freq = as.data.frame(table(findInterval(df[,1], xbins),findInterval(df[,2], ybins)))
-        freq[,1] = as.numeric(freq[,1])
-        freq[,2] = as.numeric(freq[,2])
-
-        #
-        freq2D = matrix(0, length(xbins), length(ybins))
-        freq2D[cbind(freq[,1], freq[,2])] = freq[,3]
-
-        #return proportion
-        if( !freq ){
-                return( freq2D/sum(freq2D) )
-        }
-
-        #
-        return( freq2D )
-
-        ## Normal
-        #image(x.bin, y.bin, freq2D, col=r)
-        #
-        ## Log
-        #image(x.bin, y.bin, log(freq2D), col=r)
-}
+#        #
+#        freq = as.data.frame(table(findInterval(df[,1], xbins),findInterval(df[,2], ybins)))
+#        freq[,1] = as.numeric(freq[,1])
+#        freq[,2] = as.numeric(freq[,2])
+#
+#        #
+#        freq2D = matrix(0, length(xbins), length(ybins))
+#        freq2D[cbind(freq[,1], freq[,2])] = freq[,3]
+#
+#        #return proportion
+#        if( !freq ){
+#                return( freq2D/sum(freq2D) )
+#        }
+#
+#        #
+#        return( freq2D )
+#
+#        ## Normal
+#        #image(x.bin, y.bin, freq2D, col=r)
+#        #
+#        ## Log
+#        #image(x.bin, y.bin, log(freq2D), col=r)
+#}
 
 #
 #DATABASE FUNCTIONS
@@ -71,7 +73,19 @@ base2DHist = function(df, xbins, ybins, freak=F){
 #
 
 
-#
+#' Collect and prepare Calcom data for length expansion.
+#'
+#' @param year  The year of the expansion given as a four digit integer. Year may 
+#'      be gven as a vector to prepare data for a multi-year expansion.
+#' @param save  A filename.csv to save data to file or a logical. If save=True 
+#'      the filename defalts to sprintf('calcom%sSppData%s', year, Sys.time()); 
+#'      save=False (Default) does not save.
+#' @param fromFile A filename.csv to read data from file or a logical. 
+#'      fromFile=True defaults to the most recent sprintf('pacfin%sData*', year) 
+#'      file; fromFile=False (Default) reads data from calcom.
+#'
+#' @return Returns a list of the various objects from calcom needed to compute 
+#'      a length expansions for the given years.
 getCalcomLenData = function(year, save=F, fromFile=F){
 	#year     : the year of the expansion. 
         #save     : a filename.RData to save data to file or a logical.
@@ -243,8 +257,21 @@ getCalcomLenData = function(year, save=F, fromFile=F){
 #EXPANSION FUNCTIONS
 #
 
-#
-estLenComp = function(calcomLenData, portBorr=portMatrix, files=T){ 
+#' The core expansion function executing an automated length expansion of Don's 
+#' Visual Basic code.
+#' 
+#' @param calcomLenData A list as returned by getCalcomLenData.
+#' @param portBorr      A matrix to define the priority of port borrowing. 
+#'      Rownames should indicate the port complex code of the actual stratum to 
+#'      be filled. The first column contains the first priorty for borrowing 
+#'      from, second column contains the second priority, ... etc. Elements 
+#'      should be port complex codes as they appear in the samples. Elements not 
+#'      given as appearing in the samples will code for Nominal.
+#' @param files         A boolean flag to produce verbose error files and/or 
+#'      expansion output files such as sppdoc.
+#'
+#' @return a data.frame reminiscent of the calcom ___ table. 
+estLenComp = function(calcomLenData, portBorr=portMatrix1, files=T){ 
 	#calcomLenData : a list as returned by getCalcomLenData
         #portBorr   : a matrix to define the priority of port borrowing. 
         #               rownames should indicate the port complex code of the actual stratum to be filled.
@@ -367,7 +394,7 @@ estLenComp = function(calcomLenData, portBorr=portMatrix, files=T){
 		        #
 		        borr = rep("I", 6)
 		        #port priority for the given missing strata
-		        portPriority = portMatrix[lenuse$port[i],]
+		        portPriority = portBorr[lenuse$port[i],]
 		        fars = unlist(howFar(lenuse$port[i], portPriority))
 		        for(d in sort(unique(fars))){
 		                # a version of portPriority that is at the radius d
@@ -513,7 +540,16 @@ estLenComp = function(calcomLenData, portBorr=portMatrix, files=T){
 	return(expOut)
 }
 
-#estLenCompDoc
+#' A version of the core expansion function executing an automated length expansion 
+#' based on the borrowing dictated by a doc file. 
+#' 
+#' @param calcomLenData    A list as returned by getCalcomLenData.
+#' @param doc           The filename (or vector of filenames) of the doc files 
+#'      to use in manual borrowing overrides. Defaults to sprintf("lendoc%s.csv", unique(calcomLenData$tempLen1$year)))
+#' @param files         A boolean flag to produce verbose error files and/or expansion output 
+#'      files such as sppdoc.
+#'
+#' @return a data.frame reminiscent of the calcom ___ table.
 estLenCompDoc = function(calcomLenData, doc=sprintf("lendoc%s.csv", unique(calcomLenData$tempLen1$year)), files=T){ 
 	#calcomLenData : a list as returned by getCalcomLenData
 	#exDoc      : a filename (or vector of filenames for multiple years) of a CSV file to define which data are used to expand which strata.
@@ -762,7 +798,13 @@ estLenCompDoc = function(calcomLenData, doc=sprintf("lendoc%s.csv", unique(calco
 #
 
 #One Port Away, No Conception
-portMatrix = matrix(
+#' A default matrix that encodes the default 1-away port sharing rules (no borrowing across Point Conception).
+#' 
+#' Row index defines the port to be filled in north to south encoding 
+#' c('CRS', 'ERK', 'BRG', 'BDG', 'OSF', 'MNT', 'MRO', 'OSB', 'OLA', 'OSD'). 
+#' Column values define the priority of sharing across ports for the given row.
+#' Any value outside of c('CRS', 'ERK', 'BRG', 'BDG', 'OSF', 'MNT', 'MRO', 'OSB', 'OLA', 'OSD') codes for 'NOMINAL'.
+portMatrix1 = matrix(
         c(
         'ERK', 'NOMINAL', 'NOMINAL', 'NOMINAL', 'NOMINAL',
         'CRS',     'BRG', 'NOMINAL', 'NOMINAL', 'NOMINAL',
@@ -776,8 +818,8 @@ portMatrix = matrix(
         'OLA', 'NOMINAL', 'NOMINAL', 'NOMINAL', 'NOMINAL'
         ),
 10, 5, byrow=T)
-colnames(portMatrix) = c('first', 'second', 'third', 'fourth', 'fifth')
-rownames(portMatrix) = c('CRS', 'ERK', 'BRG', 'BDG', 'OSF', 'MNT', 'MRO', 'OSB', 'OLA', 'OSD')
+colnames(portMatrix1) = c('first', 'second', 'third', 'fourth', 'fifth')
+rownames(portMatrix1) = c('CRS', 'ERK', 'BRG', 'BDG', 'OSF', 'MNT', 'MRO', 'OSB', 'OLA', 'OSD')
 
 ##
 ##TEST

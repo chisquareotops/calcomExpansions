@@ -18,7 +18,13 @@
 #ANCILLARY FUNCTIONS
 #
 
-#build strata magic coded number
+#' A function primarily for internal use that encodes a strata as Don's magic number coding.
+#'
+#' @param disp disposition
+#' @param port three letter port code
+#' @param gear three letter gear code
+#' @param mcat numeric market category
+#' @param qtr numeric quarter
 makeStratCode = function(disp, port, gear, mcat, qtr){
         #
         dispKey = c("Y", "N")
@@ -38,7 +44,9 @@ makeStratCode = function(disp, port, gear, mcat, qtr){
 }
 makeStratCode = Vectorize(makeStratCode,  vectorize.args=c('disp', 'gear', 'port', 'mcat', 'qtr'))
 
-#build strata from magic coded number
+#' A function primarily for internal use that decodes the strata from Don's magic number coding.
+#'
+#' @param code Don's magic number
 makeCodeStrat = function(code){
         #
         dispKey = c("Y", "N")
@@ -49,7 +57,9 @@ makeCodeStrat = function(code){
         return( out )
 }
 
-#
+#' A function primarily for internal use that converts three letter port codes to pacfin port codes.
+#'
+#' @param port three letter port code
 pacfinPortCode = function(port){
 	#
 	numPortKey = c("ERK", "BRG", "BDG", "OSF", "MNT", "MRO", "CRS")
@@ -61,7 +71,11 @@ pacfinPortCode = function(port){
 	return( c(num, let, 7)[1] )
 }
 
-#
+#' A function primarily for internal use that compares two expansion objects.
+#'
+#' @param exp1 An object that looks like an expansion.
+#' @param exp2 An object that looks like an expansion.
+#' @param by Which columns to join on.
 expDiff = function(exp1, exp2, by=NULL){
 	#
 	exp2Needs = suppressMessages(dplyr::anti_join(exp1, exp2, by=by))
@@ -74,8 +88,15 @@ expDiff = function(exp1, exp2, by=NULL){
 #DATABASE FUNCTIONS
 #
 
-#                              overwrite?
-backup = function(con, dbName, force=F){
+#' A function primarily for internal use that performs a default backup of COM_LANDS and COMP_EXPAND_DOCS
+#' 
+#' @param con 	An RJDBC connection to an SQL database
+#' @param dbName A table name to backup, from the given database, given as a string.
+#' @param force	A boolean indicating if a backup should be overwrite an existing 
+#'	backup made on the same day. By default this function only makes one 
+#'	backup a day, unless run with force=True to force an overwrite of the 
+#'	current day's backup.  
+backup = function(con, dbName, force=F){ #overwrite?
 	#backup year(s) into one dedicated temp_file
 		#one backup a day, only do a backup is one does not already exist. 
 		#separate functionality ot force a backup, but also check for a daily backup and 
@@ -115,13 +136,26 @@ backup = function(con, dbName, force=F){
 	return(F)
 }
 
-#
-getPacfinData = function(year, save=F, fromFile=F){
+#' Collect and prepare Pacfin data for species expansion.
+#'
+#' @param year	The year of the expansion given as landing_year is expressed in 
+#'	the pacfin_marts.comprehensive_ft table. Year may be gven as a vector to 
+#'	prepare data for a multi-year expansion.
+#' @param save	A filename.csv to save data to file or a logical. If save=True 
+#'	the filename defalts to sprintf('pacfin%sSppData%s', year, Sys.time()); 
+#'	save=False (Default) does not save.
+#' @param fromFile A filename.csv to read data from file or a logical. 
+#'	fromFile=True defaults to the most recent sprintf('pacfin%sSppData*', year) 
+#'	file; fromFile=False (Default) reads data from pacfin.
+#'
+#' @return Returns a data.frame of the neccessary fish ticket data from pacfin 
+#'	to perform species expansions for the given years
+getPacfinSppData = function(year, save=F, fromFile=F){
 	#year     : the year of the expansion given as landing_year is expressed in the pacfin_marts.comprehensive_ft table. (e.g. year=2019 at the time of coding this in 2022)
 	#save	  : a filename.csv to save data to file or a logical.
-	#		True defaults to the filename sprintf('pacfin%sData%s', year, Sys.time()); False (Default) does not save.
+	#		True defaults to the filename sprintf('pacfin%sSppData%s', year, Sys.time()); False (Default) does not save.
 	#fromFile : a filename.csv to read data from file or a logical.
-	#		True defaults to the most recent sprintf('pacfin%sData*', year) file; False (Default) reads data from pacfin.
+	#		True defaults to the most recent sprintf('pacfin%sSppData*', year) file; False (Default) reads data from pacfin.
 	#
 	#value	  : returns fish ticket data from pacfin
 	
@@ -136,10 +170,10 @@ getPacfinData = function(year, save=F, fromFile=F){
                 if( fromFile==T ){
 			years = paste(unique(year), collapse='')
 			#get possible files
-			possibleFiles = list.files(path='.', pattern=glob2rx(sprintf('pacfin%sData*', years)))
+			possibleFiles = list.files(path='.', pattern=glob2rx(sprintf('pacfin%sSppData*', years)))
 			stopifnot( length(possibleFiles)>0 )
 			#
-			firstPart = sprintf("pacfin%sData", years)
+			firstPart = sprintf("pacfin%sSppData", years)
 			dates = as.POSIXlt(sub(firstPart, "", possibleFiles))
 			fromFile = sprintf("%s%s.csv", firstPart, max(dates))	
 		}
@@ -217,7 +251,7 @@ getPacfinData = function(year, save=F, fromFile=F){
 		if( save!=F ){
 			years = paste(unique(year), collapse='')
 			#if save=T make the name the date
-			if( save==T ){ save=sprintf('pacfin%sData%s.csv', years, as.POSIXlt(Sys.time())) }
+			if( save==T ){ save=sprintf('pacfin%sSppData%s.csv', years, as.POSIXlt(Sys.time())) }
 			#write the data to file.
 			write.csv(pacfinTix, save, row.names=F, quote=F)
 		}
@@ -227,8 +261,20 @@ getPacfinData = function(year, save=F, fromFile=F){
 	return( pacfinTix )
 }
 
-#
-getCalcomData = function(year, save=F, fromFile=F){
+#' Collect and prepare Calcom data for species expansion.
+#'
+#' @param year	The year of the expansion given as a four digit integer. Year may 
+#'	be gven as a vector to prepare data for a multi-year expansion.
+#' @param save	A filename.csv to save data to file or a logical. If save=True 
+#'	the filename defalts to sprintf('calcom%sSppData%s', year, Sys.time()); 
+#'	save=False (Default) does not save.
+#' @param fromFile A filename.csv to read data from file or a logical. 
+#'	fromFile=True defaults to the most recent sprintf('pacfin%sData*', year) 
+#'	file; fromFile=False (Default) reads data from calcom.
+#'
+#' @return Returns a list of the various objects from calcom needed to compute 
+#'	a species expansions for the given years.
+getCalcomSppData = function(year, save=F, fromFile=F){
 	#year     : the year of the expansion. 
 	#save	  : a filename.RData to save data to file or a logical.
 	#		True defaults to the filename sprintf('calcom%sData%s', year, Sys.time()); False (Default) does not save.
@@ -248,10 +294,10 @@ getCalcomData = function(year, save=F, fromFile=F){
                 if( fromFile==T ){
 			years = paste(unique(year), collapse='') 
 			#get possible files
-			possibleFiles = list.files(path='.', pattern=glob2rx(sprintf('calcom%sData*', years)))
+			possibleFiles = list.files(path='.', pattern=glob2rx(sprintf('calcom%sSppData*', years)))
 			stopifnot( length(possibleFiles)>0 )
 			#
-			firstPart = sprintf("calcom%sData", years)
+			firstPart = sprintf("calcom%sSppData", years)
 			dates = as.POSIXlt(sub(firstPart, "", possibleFiles))
 			fromFile = sprintf("%s%s.rda", firstPart, max(dates))	
 		}
@@ -367,8 +413,21 @@ getCalcomData = function(year, save=F, fromFile=F){
 	return( out )
 }
 
-#
-export = function(exp, human=T, pacfin=T, calcom=F, doc=NULL){
+#' A function to perform the various exporting tasks needed after a species expansion
+#' 
+#' @param exp   An expansion object created by estSppComp or estSppCompDoc to 
+#'	be exported.
+#' @param human A boolean indicating if the human feed should be written to 
+#'	file (i.e. hfeedYY.csv).
+#' @param pacfin A boolean indicating if the pacfin feed should be written to 
+#'	file (i.e. pfeedYY.DAT).
+#' @param calcom A boolean indicating if the the calcom database should be 
+#'	backed up and updated with the given species expansion.
+#' @param doc 	If calcom=True, a vector of doc filenames to be exported to 
+#'	calcom.
+#'
+#' @return NULL See current directory and/or database.
+exportSpp = function(exp, human=T, pacfin=T, calcom=F, doc=NULL){
 	#exp    :
 	#human  :
 	#pacfin :
@@ -581,15 +640,34 @@ export = function(exp, human=T, pacfin=T, calcom=F, doc=NULL){
 	}
 	
 	#NOTE: maybe return some sort of diagnostic information?
-	#return()
+	return(NULL)
 }
 
 #
 #EXPANSION
 #
 
-#
-estSppComp = function(pacfinData, calcomData, portBorr=portMatrix, qtrBorr=qtrMatrix, files=T){
+#' The core expansion function executing an automated species expansion of Don's 
+#' Visual Basic code.
+#' 
+#' @param pacfinData	A data.frame as returned by getPacfinSppData.
+#' @param calcomData 	A list as returned by getCalcomSppData.
+#' @param portBorr  	A matrix to define the priority of port borrowing. 
+#'	Rownames should indicate the port complex code of the actual stratum to 
+#'	be filled. The first column contains the first priorty for borrowing 
+#'	from, second column contains the second priority, ... etc. Elements 
+#'	should be port complex codes as they appear in the samples. Elements not 
+#'	given as appearing in the samples will code for Nominal.
+#' @param qtrBorr	A matrix to define the priority of qtr borrowing.
+#'	Rownames should define the actual qtr of the stratum to be filled.
+#'	The first column contains the the first priority to borrowing from, 
+#'	second column contains the second priority, ... etc. Elements should be 
+#'	integers %in% 1:4. Elements not given %in% 1:4 will code for Nominal.
+#' @param files		A boolean flag to produce verbose error files and/or 
+#'	expansion output files such as sppdoc.
+#'
+#' @return a data.frame reminiscent of the calcom.com_lands table. 
+estSppComp = function(pacfinData, calcomData, portBorr=portMatrix2, qtrBorr=qtrMatrix, files=T){
 	#pacfinData : a data.frame as returned by getPacfinData
 	#calcomData : a list as returned by getCalcomData
 	#portBorr   : a matrix to define the priority of port borrowing. 
@@ -1098,7 +1176,22 @@ estSppComp = function(pacfinData, calcomData, portBorr=portMatrix, qtrBorr=qtrMa
 	#return( expLand[,c('year','qtr','disp','mcat','gear','port','source','spp','lands','comp')] )
 }
 
-#
+#' A version of the core expansion function executing an automated species expansion 
+#' based on the borrowing dictated by a doc file. 
+#' 
+#' @param pacfinData 	A data.frame as returned by getPacfinSppData.
+#' @param calcomData 	A list as returned by getCalcomSppData.
+#' @param doc		The filename (or vector of filenames) of the doc files 
+#'	to use in manual borrowing overrides. Defaults to sprintf("sppdoc%s.csv", unique(pacfinData$YR))
+#' @param qtrBorr    	A matrix to define the priority of qtr borrowing. Rownames 
+#'	should define the actual qtr of the stratum to be filled. The first 
+#'	column contains the the first priority to borrowing from, second column 
+#'	contains the second priority, ... etc. Elements should be integers %in% 1:4. 
+#'	Elements not given %in% 1:4 will code for Nominal.
+#' @param files    	A boolean flag to produce verbose error files and/or expansion output 
+#'	files such as sppdoc.
+#'
+#' @return a data.frame reminiscent of the calcom.com_lands table.
 estSppCompDoc = function(pacfinData, calcomData, doc=sprintf("sppdoc%s.csv", unique(pacfinData$YR)), qtrBorr=qtrMatrix, files=T){
 	#pacfinData : a data.frame as returned by getPacfinData
 	#calcomData : a list as returned by getCalcomData
@@ -1329,7 +1422,7 @@ estSppCompDoc = function(pacfinData, calcomData, doc=sprintf("sppdoc%s.csv", uni
 		#sampledstrata.txt: appears to filter c(tot, ct) by quarter; including any row where any ct occured
 		#sample_list.txt: appears to be a different way of making sampledstrata.txt
 		#neither of these are ever used by the code. they were for the the user to look at to manually borrow
-
+		
 		#Assign Strata
 		
 		#a metric ton
@@ -1472,7 +1565,7 @@ estSppCompDoc = function(pacfinData, calcomData, doc=sprintf("sppdoc%s.csv", uni
 		actLand = merge(expanduseTot[expanduseTot$source=='A', c('disp', 'port', 'gear', 'mcat', 'qtr', 'x')], wComp, all=T)
 		actLand = cbind(year, actLand[!is.na(actLand$x), c('qtr', 'disp', 'mcat', 'gear', 'port', 'x', 'wc', 'spp')])
 		actLandSnap = actLand #take a snapshot to work on before addding to it	
-	
+		
 		#Qtr Borrowing
 			#Since Don goes super saiyan in his qtr borrowing code, I'm doing it differently.	
 			#Borrowed qtr holes are filled directly with the fine grained sppComp calculations above.
@@ -1536,7 +1629,7 @@ estSppCompDoc = function(pacfinData, calcomData, doc=sprintf("sppdoc%s.csv", uni
         	#expLand = rbind(expLand, borrLand)
 		
 		#Save
-
+		
 		#dump nominal species into output file
 		expLand  = rbind(expLand, cbind(nomPink, 1)) #start with the nomPink from earlier
 		expLand  = rbind(expLand, moreNom)
@@ -1564,7 +1657,9 @@ estSppCompDoc = function(pacfinData, calcomData, doc=sprintf("sppdoc%s.csv", uni
 #INHERENTS 
 #
 
-#
+#' A default matrix that encodes the default qtr sharing rules from Dons code.
+#' 
+#' Row index defines the qtr to be filled and column values define the priority of sharing across qtrs for the given row.
 qtrMatrix = matrix(
         c(
         2, 3, 4,
@@ -1576,8 +1671,14 @@ qtrMatrix = matrix(
 colnames(qtrMatrix) = c('first', 'second', 'third')
 rownames(qtrMatrix) = 1:4
 
-#
-portMatrix = matrix(
+#Two Ports Away, No Conception
+#' A default matrix that encodes the default 2-away port sharing rules (no borrowing across Point Conception).
+#' 
+#' Row index defines the port to be filled in north to south encoding 
+#' c('CRS', 'ERK', 'BRG', 'BDG', 'OSF', 'MNT', 'MRO', 'OSB', 'OLA', 'OSD'). 
+#' Column values define the priority of sharing across ports for the given row.
+#' Any value outside of c('CRS', 'ERK', 'BRG', 'BDG', 'OSF', 'MNT', 'MRO', 'OSB', 'OLA', 'OSD') codes for 'NOMINAL'.
+portMatrix2 = matrix(
         c(
         'ERK', 'BRG', 'NOMINAL', 'NOMINAL', 'NOMINAL',
         'CRS', 'BRG', 'BDG'    , 'NOMINAL', 'NOMINAL',
@@ -1591,8 +1692,8 @@ portMatrix = matrix(
         'OLA', 'OSB', 'NOMINAL', 'NOMINAL', 'NOMINAL'
         ),
 10, 5, byrow=T)
-colnames(portMatrix) = c('first', 'second', 'third', 'fourth', 'fifth')
-rownames(portMatrix) = c('CRS', 'ERK', 'BRG', 'BDG', 'OSF', 'MNT', 'MRO', 'OSB', 'OLA', 'OSD')
+colnames(portMatrix2) = c('first', 'second', 'third', 'fourth', 'fifth')
+rownames(portMatrix2) = c('CRS', 'ERK', 'BRG', 'BDG', 'OSF', 'MNT', 'MRO', 'OSB', 'OLA', 'OSD')
 
 ##
 ##TEST
