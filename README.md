@@ -18,7 +18,7 @@ install.packages("devtools") #if required
 devtools::install_github("chisquareotops/calcomExpansions")
 ```
 
-Upon installing you may need toadd Java support to R by running:
+Upon installing you may need to add Java support to R by running:
 
 ``` r
 javareconf
