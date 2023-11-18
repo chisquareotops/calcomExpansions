@@ -8,7 +8,7 @@ getPacfinSppData(year, save = F, fromFile = F)
 }
 \arguments{
 \item{year}{The year of the expansion given as landing_year is expressed in
-the pacfin_marts.comprehensive_ft table. Year may be gven as a vector to
+the pacfin_marts.comprehensive_ft table. Year may be given as a vector to
 prepare data for a multi-year expansion.}
 
 \item{save}{A filename.csv to save data to file or a logical. If save=True

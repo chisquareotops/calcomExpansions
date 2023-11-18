@@ -8,7 +8,7 @@ getCalcomLenData(year, save = F, fromFile = F)
 }
 \arguments{
 \item{year}{The year of the expansion given as a four digit integer. Year may
-be gven as a vector to prepare data for a multi-year expansion.}
+be given as a vector to prepare data for a multi-year expansion.}
 
 \item{save}{A filename.csv to save data to file or a logical. If save=True
 the filename defalts to sprintf('calcom\%sSppData\%s', year, Sys.time());

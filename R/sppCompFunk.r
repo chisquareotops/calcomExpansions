@@ -160,7 +160,7 @@ backup = function(con, dbName, force=F){ #overwrite?
 #' Collect and prepare Pacfin data for species expansion.
 #'
 #' @param year	The year of the expansion given as landing_year is expressed in 
-#'	the pacfin_marts.comprehensive_ft table. Year may be gven as a vector to 
+#'	the pacfin_marts.comprehensive_ft table. Year may be given as a vector to 
 #'	prepare data for a multi-year expansion.
 #' @param save	A filename.csv to save data to file or a logical. If save=True 
 #'	the filename defalts to sprintf('pacfin%sSppData%s', year, Sys.time()); 
@@ -288,7 +288,7 @@ getPacfinSppData = function(year, save=F, fromFile=F){
 #' Collect and prepare Calcom data for species expansion.
 #'
 #' @param year	The year of the expansion given as a four digit integer. Year may 
-#'	be gven as a vector to prepare data for a multi-year expansion.
+#'	be given as a vector to prepare data for a multi-year expansion.
 #' @param save	A filename.csv to save data to file or a logical. If save=True 
 #'	the filename defalts to sprintf('calcom%sSppData%s', year, Sys.time()); 
 #'	save=False (Default) does not save.
