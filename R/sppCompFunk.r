@@ -220,7 +220,7 @@ getPacfinSppData = function(year, save=F, fromFile=F){
 				# PacFIN is an Oracle sql server on the NOAA VPN (Not the psmfc VPN)
 				# ojdbc8.jar downloaded from https://www.oracle.com/database/technologies/appdev/jdbc-downloads.html
 				#oDrv = RJDBC::JDBC(driverClass='oracle.jdbc.OracleDriver', classPath='./ojdbc8.jar', identifier.quote="'")
-				oDrv = RJDBC::JDBC(driverClass='oracle.jdbc.OracleDriver', classPath=file.path(dPath, "ojdbc8.jar"), identifier.quote="'")
+				oDrv = RJDBC::JDBC(driverClass='oracle.jdbc.OracleDriver', classPath=file.path(dPath, "drivers", "ojdbc8.jar"), identifier.quote="'")
 				#PacFIN connection
 				writeLines("\nReading PacFIN Species Data From PacFIN Connection...")
 				#template connection string:"jdbc:oracle:thin:@//database.hostname.com:port/service_name_or_sid"
