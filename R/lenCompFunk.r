@@ -96,7 +96,8 @@ getCalcomLenData = function(year, save=F, fromFile=F){
         #value    : returns a list of all of the various objects in calcom needed to compute an expansion in the given year.
 
 	#check drivers
-        getDrivers()
+        #getDrivers()
+	dPath = getDriverPath()
 	
         #error if the given year is before the data would exist (also catches two digit years)
         stopifnot( year>=1975 )
@@ -135,7 +136,8 @@ getCalcomLenData = function(year, save=F, fromFile=F){
 			# Create microsoft sql connection driver and open connection to CALCOM
 			# CALCOM is an MS-SQL server on the PSMFC VPN
 			# sqljdbc4.jar file is required for creating the microsoft sql driver
-			mDrv = RJDBC::JDBC('com.microsoft.sqlserver.jdbc.SQLServerDriver', './sqljdbc4.jar', identifier.quote="'")
+			#mDrv = RJDBC::JDBC('com.microsoft.sqlserver.jdbc.SQLServerDriver', './sqljdbc4.jar', identifier.quote="'")
+			mDrv = RJDBC::JDBC('com.microsoft.sqlserver.jdbc.SQLServerDriver', file.path(dPath, "drivers", "sqljdbc4.jar"), identifier.quote="'")
 			# CALCOM connection
 			writeLines("\nReading CALCOM Length Data From CALCOM Connection...") 
 			mCon = RJDBC::dbConnect(mDrv, 'jdbc:sqlserver://sql2016.psmfc.org\\calcom;databaseName=CALCOM', getPass::getPass('CALCOM User: '), getPass::getPass('Password: '))	
