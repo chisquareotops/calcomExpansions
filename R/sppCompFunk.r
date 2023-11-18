@@ -88,6 +88,12 @@ expDiff = function(exp1, exp2, by=NULL){
 #DATABASE FUNCTIONS
 #
 
+#' A function primarily for internal use that finds path of the packagte install. Built for use in referencing the driver location.
+getDriverPath = function(){
+	paths = file.path(.libPaths(), "calcomExpansions")
+	paths[dir.exists(paths)][1]
+}
+
 #' A function primarily for internal use that checks to make sure the database drivers are in place. Requires an internet connection to download.
 getDrivers = function(){
 	#check is driver exist
@@ -122,10 +128,7 @@ backup = function(con, dbName, force=F){ #overwrite?
 		#xxx_COM_LANDS_BAK_YYYYMMDD
 		#select * into xxx_COM_LANDS_BAK_YYYYMMDD from com_lands 
 		#xxx_COMP_EXPAND_DOCS_BAK_YYYYMMDD
-	
-	#check drivers
-	getDrivers()
-	
+
 	#
 	dateStamp = format(Sys.time(), "%Y%m%d")  #"20190416" #
 	backupName = sprintf("xxx_%s_BAK_%s", dbName, dateStamp)	
@@ -179,9 +182,10 @@ getPacfinSppData = function(year, save=F, fromFile=F){
 	#		True defaults to the most recent sprintf('pacfin%sSppData*', year) file; False (Default) reads data from pacfin.
 	#
 	#value	  : returns fish ticket data from pacfin
-	
-	#check drivers
-	getDrivers()
+		
+	#drivers
+	#getDrivers()
+	dPath = getDriverPath()
 	
 	#error if the given year is before the data would exist (also catches two digit years)
 	stopifnot( year>=1975 )
@@ -215,7 +219,8 @@ getPacfinSppData = function(year, save=F, fromFile=F){
 				# Create Oracle connection driver and open connection to PacFIN
 				# PacFIN is an Oracle sql server on the NOAA VPN (Not the psmfc VPN)
 				# ojdbc8.jar downloaded from https://www.oracle.com/database/technologies/appdev/jdbc-downloads.html
-				oDrv = RJDBC::JDBC(driverClass='oracle.jdbc.OracleDriver', classPath='./ojdbc8.jar', identifier.quote="'")
+				#oDrv = RJDBC::JDBC(driverClass='oracle.jdbc.OracleDriver', classPath='./ojdbc8.jar', identifier.quote="'")
+				oDrv = RJDBC::JDBC(driverClass='oracle.jdbc.OracleDriver', classPath=file.path(dPath, "ojdbc8.jar"), identifier.quote="'")
 				#PacFIN connection
 				writeLines("\nReading PacFIN Species Data From PacFIN Connection...")
 				#template connection string:"jdbc:oracle:thin:@//database.hostname.com:port/service_name_or_sid"
