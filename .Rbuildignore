@@ -1,6 +1,7 @@
 ^sppCompQuick\.pdf$
 ^sppCompQuick\.tex$
-^drivers$
 ^buildSelf\.r$
 ^data-raw$
 ^README\.Rmd$
+^.*\.Rproj$
+^\.Rproj\.user$

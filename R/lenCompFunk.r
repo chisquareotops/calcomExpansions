@@ -94,10 +94,6 @@ getCalcomLenData = function(year, save=F, fromFile=F){
         #               True defaults to the most recent sprintf('calcom%sData*', year) file; False (Default) reads data from calcom.
         #
         #value    : returns a list of all of the various objects in calcom needed to compute an expansion in the given year.
-
-	#check drivers
-        #getDrivers()
-	dPath = getDriverPath()
 	
         #error if the given year is before the data would exist (also catches two digit years)
         stopifnot( year>=1975 )
@@ -137,7 +133,7 @@ getCalcomLenData = function(year, save=F, fromFile=F){
 			# CALCOM is an MS-SQL server on the PSMFC VPN
 			# sqljdbc4.jar file is required for creating the microsoft sql driver
 			#mDrv = RJDBC::JDBC('com.microsoft.sqlserver.jdbc.SQLServerDriver', './sqljdbc4.jar', identifier.quote="'")
-			mDrv = RJDBC::JDBC('com.microsoft.sqlserver.jdbc.SQLServerDriver', file.path(dPath, "drivers", "sqljdbc4.jar"), identifier.quote="'")
+			mDrv = RJDBC::JDBC('com.microsoft.sqlserver.jdbc.SQLServerDriver', system.file("drivers/sqljdbc4.jar", package = "calcomExpansions"), identifier.quote="'")
 			# CALCOM connection
 			writeLines("\nReading CALCOM Length Data From CALCOM Connection...") 
 			mCon = RJDBC::dbConnect(mDrv, 'jdbc:sqlserver://sql2016.psmfc.org\\calcom;databaseName=CALCOM', getPass::getPass('CALCOM User: '), getPass::getPass('Password: '))	
@@ -797,34 +793,6 @@ estLenCompDoc = function(calcomLenData, doc=sprintf("lendoc%s.csv", unique(calco
 	#
 	return(expOut)
 }
-
-#
-#INHERENTS
-#
-
-#One Port Away, No Conception
-#' A default matrix that encodes the default 1-away port sharing rules (no borrowing across Point Conception).
-#' 
-#' Row index defines the port to be filled in north to south encoding 
-#' c('CRS', 'ERK', 'BRG', 'BDG', 'OSF', 'MNT', 'MRO', 'OSB', 'OLA', 'OSD'). 
-#' Column values define the priority of sharing across ports for the given row.
-#' Any value outside of c('CRS', 'ERK', 'BRG', 'BDG', 'OSF', 'MNT', 'MRO', 'OSB', 'OLA', 'OSD') codes for 'NOMINAL'.
-portMatrix1 = matrix(
-        c(
-        'ERK', 'NOMINAL', 'NOMINAL', 'NOMINAL', 'NOMINAL',
-        'CRS',     'BRG', 'NOMINAL', 'NOMINAL', 'NOMINAL',
-        'ERK',     'BDG', 'NOMINAL', 'NOMINAL', 'NOMINAL',
-        'OSF',     'BRG', 'NOMINAL', 'NOMINAL', 'NOMINAL',
-        'BDG',     'MNT', 'NOMINAL', 'NOMINAL', 'NOMINAL',
-        'OSF',     'MRO', 'NOMINAL', 'NOMINAL', 'NOMINAL',
-        'MNT', 'NOMINAL', 'NOMINAL', 'NOMINAL', 'NOMINAL',
-        'OLA', 'NOMINAL', 'NOMINAL', 'NOMINAL', 'NOMINAL',
-        'OSB',     'OSD', 'NOMINAL', 'NOMINAL', 'NOMINAL',
-        'OLA', 'NOMINAL', 'NOMINAL', 'NOMINAL', 'NOMINAL'
-        ),
-10, 5, byrow=T)
-colnames(portMatrix1) = c('first', 'second', 'third', 'fourth', 'fifth')
-rownames(portMatrix1) = c('CRS', 'ERK', 'BRG', 'BDG', 'OSF', 'MNT', 'MRO', 'OSB', 'OLA', 'OSD')
 
 ##
 ##TEST

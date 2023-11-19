@@ -88,29 +88,6 @@ expDiff = function(exp1, exp2, by=NULL){
 #DATABASE FUNCTIONS
 #
 
-#' A function primarily for internal use that finds path of the packagte install. Built for use in referencing the driver location.
-getDriverPath = function(){
-	paths = file.path(.libPaths(), "calcomExpansions")
-	paths[dir.exists(paths)][1]
-}
-
-#' A function primarily for internal use that checks to make sure the database drivers are in place. Requires an internet connection to download.
-getDrivers = function(){
-	#check is driver exist
-        if( !all(file.exists("sqljdbc4.jar", "ojdbc8.jar")) ){
-		#
-		writeLines("\nDownloading Database Drivers...")
-		#if not download them into the current working ditrectory. This is where the rest of the code expects them. Any code that needs them will probably need an internet connection anyway
-		utils::download.file(
-			url="https://github.com/chisquareotops/calcomExpansions/raw/main/drivers/sqljdbc4.jar",
-			destfile = "sqljdbc4.jar"
-		)
-		utils::download.file(
-			url="https://github.com/chisquareotops/calcomExpansions/raw/main/drivers/ojdbc8.jar",
-			destfile = "ojdbc8.jar"
-		)
-	}
-}
 
 #' A function primarily for internal use that performs a default backup of COM_LANDS and COMP_EXPAND_DOCS
 #' 
@@ -182,10 +159,6 @@ getPacfinSppData = function(year, save=F, fromFile=F){
 	#		True defaults to the most recent sprintf('pacfin%sSppData*', year) file; False (Default) reads data from pacfin.
 	#
 	#value	  : returns fish ticket data from pacfin
-		
-	#drivers
-	#getDrivers()
-	dPath = getDriverPath()
 	
 	#error if the given year is before the data would exist (also catches two digit years)
 	stopifnot( year>=1975 )
@@ -220,7 +193,7 @@ getPacfinSppData = function(year, save=F, fromFile=F){
 				# PacFIN is an Oracle sql server on the NOAA VPN (Not the psmfc VPN)
 				# ojdbc8.jar downloaded from https://www.oracle.com/database/technologies/appdev/jdbc-downloads.html
 				#oDrv = RJDBC::JDBC(driverClass='oracle.jdbc.OracleDriver', classPath='./ojdbc8.jar', identifier.quote="'")
-				oDrv = RJDBC::JDBC(driverClass='oracle.jdbc.OracleDriver', classPath=file.path(dPath, "drivers", "ojdbc8.jar"), identifier.quote="'")
+				oDrv = RJDBC::JDBC(driverClass='oracle.jdbc.OracleDriver', classPath=system.file("drivers/ojdbc8.jar", package = "calcomExpansions"), identifier.quote="'")
 				#PacFIN connection
 				writeLines("\nReading PacFIN Species Data From PacFIN Connection...")
 				#template connection string:"jdbc:oracle:thin:@//database.hostname.com:port/service_name_or_sid"
@@ -312,10 +285,6 @@ getCalcomSppData = function(year, save=F, fromFile=F){
 	#
 	#value	  : returns a list of all of the various objects in calcom needed to compute an expansion in the given year.
 	
-	#check drivers
-	#getDrivers()
-	dPath = getDriverPath()
-	
 	#error if the given year is before the data would exist (also catches two digit years)
 	stopifnot( year>=1975 )
 	#year should not be fractional
@@ -355,7 +324,7 @@ getCalcomSppData = function(year, save=F, fromFile=F){
 				# CALCOM is an MS-SQL server on the PSMFC VPN
 				# sqljdbc4.jar file is required for creating the microsoft sql driver
 				#mDrv = RJDBC::JDBC('com.microsoft.sqlserver.jdbc.SQLServerDriver', './sqljdbc4.jar', identifier.quote="'")
-				mDrv = RJDBC::JDBC('com.microsoft.sqlserver.jdbc.SQLServerDriver', file.path(dPath, "drivers", "sqljdbc4.jar"), identifier.quote="'")
+				mDrv = RJDBC::JDBC('com.microsoft.sqlserver.jdbc.SQLServerDriver', system.file("drivers/sqljdbc4.jar", package = "calcomExpansions"), identifier.quote="'")
 				# CALCOM connection
 				writeLines("\nReading CALCOM Species Data From CALCOM Connection...")                  #CALCOM_test
 				mCon = RJDBC::dbConnect(mDrv, 'jdbc:sqlserver://sql2016.psmfc.org\\calcom;databaseName=CALCOM', getPass::getPass('CALCOM User: '), getPass::getPass('Password: '))
@@ -589,8 +558,6 @@ exportSpp = function(exp, human=T, pacfin=T, calcom=F, doc=NULL){
 	
 	#propogate calcom SQL tables: 
 	if( calcom ){
-		#getDrivers()
-		dPath = getDriverPath()
 		
 		#
 		if( length(doc)!=length(years) ){
@@ -605,7 +572,7 @@ exportSpp = function(exp, human=T, pacfin=T, calcom=F, doc=NULL){
 				# CALCOM is an MS-SQL server on the PSMFC VPN
 				# sqljdbc4.jar file is required for creating the microsoft sql driver
 				#mDrv = RJDBC::JDBC('com.microsoft.sqlserver.jdbc.SQLServerDriver', './sqljdbc4.jar', identifier.quote="'")
-				mDrv = RJDBC::JDBC('com.microsoft.sqlserver.jdbc.SQLServerDriver', file.path(dPath, "drivers", "sqljdbc4.jar"), identifier.quote="'")
+				mDrv = RJDBC::JDBC('com.microsoft.sqlserver.jdbc.SQLServerDriver', system.file("drivers/sqljdbc4.jar", package = "calcomExpansions"), identifier.quote="'")
 				# CALCOM connection
 				writeLines("\nWriting Expansion to CALCOM Connection...")                  #CALCOM_test
 				mCon = RJDBC::dbConnect(mDrv, 'jdbc:sqlserver://sql2016.psmfc.org\\calcom;databaseName=CALCOM', getPass::getPass('CALCOM User: '), getPass::getPass('Password: '))
@@ -1708,30 +1675,6 @@ qtrMatrix = matrix(
 4, 3, byrow=T)
 colnames(qtrMatrix) = c('first', 'second', 'third')
 rownames(qtrMatrix) = 1:4
-
-#Two Ports Away, No Conception
-#' A default matrix that encodes the default 2-away port sharing rules (no borrowing across Point Conception).
-#' 
-#' Row index defines the port to be filled in north to south encoding 
-#' c('CRS', 'ERK', 'BRG', 'BDG', 'OSF', 'MNT', 'MRO', 'OSB', 'OLA', 'OSD'). 
-#' Column values define the priority of sharing across ports for the given row.
-#' Any value outside of c('CRS', 'ERK', 'BRG', 'BDG', 'OSF', 'MNT', 'MRO', 'OSB', 'OLA', 'OSD') codes for 'NOMINAL'.
-portMatrix2 = matrix(
-        c(
-        'ERK', 'BRG', 'NOMINAL', 'NOMINAL', 'NOMINAL',
-        'CRS', 'BRG', 'BDG'    , 'NOMINAL', 'NOMINAL',
-        'ERK', 'BDG', 'OSF'    , 'CRS'    , 'NOMINAL',
-        'OSF', 'BRG', 'MNT'    , 'ERK'    , 'NOMINAL',
-        'BDG', 'MNT', 'BRG'    , 'MRO'    , 'NOMINAL',
-        'OSF', 'MRO', 'BDG'    , 'NOMINAL', 'NOMINAL',
-        'MNT', 'OSF', 'NOMINAL', 'NOMINAL', 'NOMINAL',
-        'OLA', 'OSD', 'NOMINAL', 'NOMINAL', 'NOMINAL',
-        'OSB', 'OSD', 'NOMINAL', 'NOMINAL', 'NOMINAL',
-        'OLA', 'OSB', 'NOMINAL', 'NOMINAL', 'NOMINAL'
-        ),
-10, 5, byrow=T)
-colnames(portMatrix2) = c('first', 'second', 'third', 'fourth', 'fifth')
-rownames(portMatrix2) = c('CRS', 'ERK', 'BRG', 'BDG', 'OSF', 'MNT', 'MRO', 'OSB', 'OLA', 'OSD')
 
 ##
 ##TEST
