@@ -36,16 +36,50 @@ The getDrivers() function can/should be run from the current working directory o
 
 ## Package Use
 
+Calcom expansions combine information from both the PacFIN and CalCOM
+databses and are completed on a yearly basis. The `calcomExpansions`
+package provides functions for gathering and preparing the data
+neccessary for completing expansions, and several core functions for
+executing and exporting species and length expansions (age expansions
+coming soon).
+
+A typical use-case for this package will require access to both the
+PacFIN and CalCOM databases. If you have not setup database access for
+these databases you will need to arrange access to these databases prior
+to using this package. Contact XXXX for access to the PacFIN database.
+Contact YYYY for access to the CalCOM database and/or PSMFC VPN.
+
 ### Species Expansion
 
-The following is an example of a basic species expansion:
+The data for species expansions are collected and prepared by the two
+helper functions `getPacfinSppData` and `getPacfinSppData`.
 
-    R> year = 2019  #Vectorized in year. year=2018:2023 would also work. 
+The `getPacfinSppData(year, save = F, fromFile = F)` function prepares
+an R data.frame from the neccessary PacFIN calls needed to perform a
+species expansion. By default this function connects to the PacFIN
+database to prepare its output. If run with `save=True`, then the output
+will be saved to a local csv file for replicability and/or convience
+purposes. If a local csv is present on your system, `getPacfinSppData`
+can be run with `fromFile=True` to bypass VPN and database connections.
+
+A typical use will look like:
+
+    R> year = 2019  
     R> pacfinSpp = getPacfinSppData(year)
 
     Reading PacFIN Species Data From PacFIN Connection...
     PacFIN User: ********
     Password: ************
+
+Similarly the `getCalcomSppData(year, save = F, fromFile = F)` function
+prepares an R list from the neccessary Calcom calls needed to perform a
+species expansion. By default this function connects to the Calcom
+database to prepare its output. If run with `save=True`, then the output
+will be saved to a local .rda file for replicability and/or convience
+purposes. If a local .rda is present on your system, `getCalcomSppData`
+can be run with `fromFile=True` to bypass VPN and database connections.
+
+A typical use will look like:
 
     R> calcomSpp = getCalcomSppData(year)
 
@@ -53,8 +87,26 @@ The following is an example of a basic species expansion:
     CALCOM User: ********
     Password: ****************
 
+Once both the PacFIN and Calcom data have been prepared, the data can be
+passed to `estSppComp` function to perform the species composition
+expansion as follows.
+
     R> sppExp = estSppComp(pacfinSpp, calcomSpp)
     R> exportSpp(sppExp)
+
+The
+`estSppComp(pacfinData, calcomData, portBorr = portMatrix2, qtrBorr = qtrMatrix, files = T)`
+function uses the two optional arguments `portBorr` and `qtrBorr` to
+establish port complex and quarter borrowing rules to expand strata in
+which no data exists. By default the matricies `portMatrix2` and
+`qtrMatrix` are supplied which define the long established borrowing
+standards used by Calcom (CITE). For more details about the structure of
+these matrices and the borrowing rules they imply see the R help pages
+for these data structes (i.e. `?portMatrix2' or`?qtrMatrix\` in an R
+shell).
+
+Stripping out the commentary from the above commands results in the
+following simple example of an expansion in 2019.
 
     R> year = 2019  #Vectorized in year. year=2018:2023 would also work. 
     R> pacfinSpp = getPacfinSppData(year)
