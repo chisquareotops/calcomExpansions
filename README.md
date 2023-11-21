@@ -11,6 +11,10 @@ rewritten in R.
 
 ## Installation
 
+Before installing the calcomExpansions package you should ensure that
+Java is installed on your computer. Please visit <http://www.java.com>
+for information on installing Java on your particular system.
+
 To install the latest version of the package:
 
 ``` r
@@ -18,10 +22,11 @@ install.packages("devtools") #if required
 devtools::install_github("chisquareotops/calcomExpansions")
 ```
 
-Upon installing you may need to add Java support to R by running:
+Upon installing, some unix-based systems may need to to have Java
+reconfigured with R by running the following command in the terminal:
 
-``` r
-javareconf
+``` bash
+sudo R CMD javareconf
 ```
 
 <!--
