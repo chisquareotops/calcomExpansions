@@ -38,7 +38,25 @@ The getDrivers() function can/should be run from the current working directory o
 
 ### Species Expansion
 
-    R> year = 2019  #Vectorized in year. year=2018:2023 works. 
+The following is an example of a basic species expansion:
+
+    R> year = 2019  #Vectorized in year. year=2018:2023 would also work. 
+    R> pacfinSpp = getPacfinSppData(year)
+
+    Reading PacFIN Species Data From PacFIN Connection...
+    PacFIN User: ********
+    Password: ************
+
+    R> calcomSpp = getCalcomSppData(year)
+
+    Reading CALCOM Species Data From CALCOM Connection...
+    CALCOM User: ********
+    Password: ****************
+
+    R> sppExp = estSppComp(pacfinSpp, calcomSpp)
+    R> exportSpp(sppExp)
+
+    R> year = 2019  #Vectorized in year. year=2018:2023 would also work. 
     R> pacfinSpp = getPacfinSppData(year)
 
     Reading PacFIN Species Data From PacFIN Connection...
@@ -56,7 +74,7 @@ The getDrivers() function can/should be run from the current working directory o
 
 ### Length Expansion
 
-    R> year = 2019  #Vectorized in year. year=2018:2023 works. 
+    R> year = 2019  #Vectorized in year. year=2018:2023 would also work. 
 
     R> calcomLen = getCalcomLenData(year)
 
@@ -65,5 +83,7 @@ The getDrivers() function can/should be run from the current working directory o
     Password: ****************
 
     R> lenExp = estLenComp(calcomLen)
+
+### Age Expasion Coming Soon…
 
 <!-- Age Expansion -->
