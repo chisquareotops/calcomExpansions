@@ -15,7 +15,8 @@ Before installing the calcomExpansions package you should ensure that
 Java is installed on your computer. Please visit <http://www.java.com>
 for information on installing Java on your particular system.
 
-To install the latest version of the package:
+To install the latest version of the `calcomExpansions` package you can
+run the following in an R shell:
 
 ``` r
 install.packages("devtools") #if required
