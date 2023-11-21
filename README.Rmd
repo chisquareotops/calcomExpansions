@@ -65,15 +65,15 @@ access to the CalCOM database and/or PSMFC VPN.
 ### Species Expansion
 
 The data for species expansions are collected and prepared by the two helper 
-functions `getPacfinSppData` and `getPacfinSppData`. 
+functions `getPacfinSppData` and `getCalcomSppData`. 
 
 The `getPacfinSppData(year, save = F, fromFile = F)` function prepares an R 
-data.frame from the neccessary PacFIN calls needed to perform a species expansion.
-By default this function connects to the PacFIN database to prepare its 
-output. If run with `save=True`, then the output will be saved to a local csv file 
-for replicability and/or convience purposes. If a local csv is present on your 
-system, `getPacfinSppData` can be run with `fromFile=True` to bypass VPN and 
-database connections.
+data.frame from the neccessary PacFIN database calls needed to perform a 
+species expansion. By default this function connects to the PacFIN database to 
+prepare its output. If run with `save=True`, then the output will be saved to 
+a local csv file for replicability and/or convienience purposes. If a local 
+csv is present on your system, `getPacfinSppData` can be run with 
+`fromFile=True` to bypass VPN and database connections.
 
 A typical use will look like:
 ```
@@ -86,7 +86,7 @@ Password: ************
 ```
 
 Similarly the `getCalcomSppData(year, save = F, fromFile = F)` function 
-prepares an R list from the neccessary Calcom calls needed to perform a 
+prepares an R list from the neccessary Calcom database calls needed to perform a 
 species expansion. By default this function connects to the Calcom database to 
 prepare its output. If run with `save=True`, then the output will be saved to 
 a local .rda file for replicability and/or convience purposes. If a local .rda 
@@ -106,7 +106,6 @@ Once both the PacFIN and Calcom data have been prepared, the data can be passed
 to `estSppComp` function to perform the species composition expansion as follows.
 ```
 R> sppExp = estSppComp(pacfinSpp, calcomSpp)
-R> exportSpp(sppExp)
 ```
 
 The `estSppComp(pacfinData, calcomData, portBorr = portMatrix2, qtrBorr = qtrMatrix, files = T)` 
@@ -114,15 +113,28 @@ function uses the two optional arguments `portBorr` and `qtrBorr` to establish
 port complex and quarter borrowing rules to expand strata in which no data 
 exists. By default the matricies `portMatrix2` and `qtrMatrix` are supplied 
 which define the long established borrowing standards used by Calcom (CITE). 
-For more details about the structure of these matrices and the borrowing rules 
-they imply see the R help pages for these data structes (i.e. `?portMatrix2' or 
+For more details about the structure of these matrices, and the borrowing rules 
+they imply, see the R help pages for these data structures (i.e. `?portMatrix2' or 
 `?qtrMatrix` in an R shell). 
 
+If manual adjusting of particular borrows are required (exceptions to the 
+borrowing rules implied by the given portBorr and qtrBorr arguments) the 
+`estSppCompDoc(pacfinData, calcomData, doc = sprintf("sppdoc%s.csv", unique(pacfinData$YR)), qtrBorr = qtrMatrix, files = T)`
+function may be used to to modify the borrows performed by `estSppComp`. 
+For more details about editing particular borrows via the expansion 
+documentation files see the R help page for these data `estSppCompDoc` 
+(i.e. `?estSppCompDoc` in an R shell)
 
+Once the expansion is complete the results may be exported in several different 
+formats by the `exportSpp(exp, human = T, pacfin = T, calcom = F, doc = NULL)` function. 
+See the R help page for details about the various export formats available 
+(i.e. `?exportSpp` in an R shell). 
+```
+R> exportSpp(sppExp)
+```
 
-
-
-Stripping out the commentary from the above commands results in the following simple example of an expansion in 2019.
+Stripping out the commentary from the above commands results in the following 
+simple example of what a default expansion in 2019entails in R.
 ```
 R> year = 2019	#Vectorized in year. year=2018:2023 would also work. 
 R> pacfinSpp = getPacfinSppData(year)
