@@ -88,8 +88,8 @@ expDiff = function(exp1, exp2, by=NULL){
 #DATABASE FUNCTIONS
 #
 
-#' A function primarily for internal use that finds path of the packagte install. Built for use in referencing the driver location.
-getDriverPath = function(){
+#' A function primarily for internal use that finds path of the package install. Built for use in referencing the driver location.
+getSelfPath = function(){
 	paths = file.path(.libPaths(), "calcomExpansions")
 	paths[dir.exists(paths)][1]
 }
@@ -102,11 +102,11 @@ getDrivers = function(){
 		writeLines("\nDownloading Database Drivers...")
 		#if not download them into the current working ditrectory. This is where the rest of the code expects them. Any code that needs them will probably need an internet connection anyway
 		utils::download.file(
-			url="https://github.com/chisquareotops/calcomExpansions/raw/main/drivers/sqljdbc4.jar",
+			url="https://github.com/chisquareotops/calcomExpansions/raw/main/inst/drivers/sqljdbc4.jar",
 			destfile = "sqljdbc4.jar"
 		)
 		utils::download.file(
-			url="https://github.com/chisquareotops/calcomExpansions/raw/main/drivers/ojdbc8.jar",
+			url="https://github.com/chisquareotops/calcomExpansions/raw/main/inst/drivers/ojdbc8.jar",
 			destfile = "ojdbc8.jar"
 		)
 	}
@@ -182,10 +182,6 @@ getPacfinSppData = function(year, save=F, fromFile=F){
 	#		True defaults to the most recent sprintf('pacfin%sSppData*', year) file; False (Default) reads data from pacfin.
 	#
 	#value	  : returns fish ticket data from pacfin
-		
-	#drivers
-	#getDrivers()
-	dPath = getDriverPath()
 	
 	#error if the given year is before the data would exist (also catches two digit years)
 	stopifnot( year>=1975 )
@@ -220,7 +216,8 @@ getPacfinSppData = function(year, save=F, fromFile=F){
 				# PacFIN is an Oracle sql server on the NOAA VPN (Not the psmfc VPN)
 				# ojdbc8.jar downloaded from https://www.oracle.com/database/technologies/appdev/jdbc-downloads.html
 				#oDrv = RJDBC::JDBC(driverClass='oracle.jdbc.OracleDriver', classPath='./ojdbc8.jar', identifier.quote="'")
-				oDrv = RJDBC::JDBC(driverClass='oracle.jdbc.OracleDriver', classPath=file.path(dPath, "drivers", "ojdbc8.jar"), identifier.quote="'")
+				#oDrv = RJDBC::JDBC(driverClass='oracle.jdbc.OracleDriver', classPath=file.path(dPath, "drivers", "ojdbc8.jar"), identifier.quote="'")
+				oDrv = RJDBC::JDBC(driverClass='oracle.jdbc.OracleDriver', classPath=system.file("drivers/ojdbc8.jar", package="calcomExpansions"), identifier.quote="'")
 				#PacFIN connection
 				writeLines("\nReading PacFIN Species Data From PacFIN Connection...")
 				#template connection string:"jdbc:oracle:thin:@//database.hostname.com:port/service_name_or_sid"
@@ -312,10 +309,6 @@ getCalcomSppData = function(year, save=F, fromFile=F){
 	#
 	#value	  : returns a list of all of the various objects in calcom needed to compute an expansion in the given year.
 	
-	#check drivers
-	#getDrivers()
-	dPath = getDriverPath()
-	
 	#error if the given year is before the data would exist (also catches two digit years)
 	stopifnot( year>=1975 )
 	#year should not be fractional
@@ -355,7 +348,8 @@ getCalcomSppData = function(year, save=F, fromFile=F){
 				# CALCOM is an MS-SQL server on the PSMFC VPN
 				# sqljdbc4.jar file is required for creating the microsoft sql driver
 				#mDrv = RJDBC::JDBC('com.microsoft.sqlserver.jdbc.SQLServerDriver', './sqljdbc4.jar', identifier.quote="'")
-				mDrv = RJDBC::JDBC('com.microsoft.sqlserver.jdbc.SQLServerDriver', file.path(dPath, "drivers", "sqljdbc4.jar"), identifier.quote="'")
+				#mDrv = RJDBC::JDBC('com.microsoft.sqlserver.jdbc.SQLServerDriver', file.path(dPath, "drivers", "sqljdbc4.jar"), identifier.quote="'")
+				mDrv = RJDBC::JDBC('com.microsoft.sqlserver.jdbc.SQLServerDriver', system.file("drivers/sqljdbc4.jar", package="calcomExpansions"), identifier.quote="'")
 				# CALCOM connection
 				writeLines("\nReading CALCOM Species Data From CALCOM Connection...")                  #CALCOM_test
 				mCon = RJDBC::dbConnect(mDrv, 'jdbc:sqlserver://sql2016.psmfc.org\\calcom;databaseName=CALCOM', getPass::getPass('CALCOM User: '), getPass::getPass('Password: '))
@@ -589,9 +583,6 @@ exportSpp = function(exp, human=T, pacfin=T, calcom=F, doc=NULL){
 	
 	#propogate calcom SQL tables: 
 	if( calcom ){
-		#getDrivers()
-		dPath = getDriverPath()
-		
 		#
 		if( length(doc)!=length(years) ){
 			stop(sprintf("\n\tdoc filename must be specified for each year expanded when calcom==T"))
@@ -605,7 +596,8 @@ exportSpp = function(exp, human=T, pacfin=T, calcom=F, doc=NULL){
 				# CALCOM is an MS-SQL server on the PSMFC VPN
 				# sqljdbc4.jar file is required for creating the microsoft sql driver
 				#mDrv = RJDBC::JDBC('com.microsoft.sqlserver.jdbc.SQLServerDriver', './sqljdbc4.jar', identifier.quote="'")
-				mDrv = RJDBC::JDBC('com.microsoft.sqlserver.jdbc.SQLServerDriver', file.path(dPath, "drivers", "sqljdbc4.jar"), identifier.quote="'")
+				#mDrv = RJDBC::JDBC('com.microsoft.sqlserver.jdbc.SQLServerDriver', file.path(dPath, "drivers", "sqljdbc4.jar"), identifier.quote="'")
+				mDrv = RJDBC::JDBC('com.microsoft.sqlserver.jdbc.SQLServerDriver', system.file("drivers/sqljdbc4.jar", package="calcomExpansions"), identifier.quote="'")
 				# CALCOM connection
 				writeLines("\nWriting Expansion to CALCOM Connection...")                  #CALCOM_test
 				mCon = RJDBC::dbConnect(mDrv, 'jdbc:sqlserver://sql2016.psmfc.org\\calcom;databaseName=CALCOM', getPass::getPass('CALCOM User: '), getPass::getPass('Password: '))
