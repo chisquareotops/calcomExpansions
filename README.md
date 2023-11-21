@@ -18,17 +18,13 @@ for information on installing Java on your particular system.
 To install the latest version of the `calcomExpansions` package you can
 run the following in an R shell:
 
-``` r
-install.packages("devtools") #if required
-devtools::install_github("chisquareotops/calcomExpansions")
-```
+    R> install.packages("devtools") #if required
+    R> devtools::install_github("chisquareotops/calcomExpansions")
 
 Upon installing, some unix-based systems may need to to have Java
 reconfigured with R by running the following command in the terminal:
 
-``` bash
-sudo R CMD javareconf
-```
+    bash$ sudo R CMD javareconf
 
 <!--
 upon installing RJDBC you may need to run "R CMD javareconf" command in the 
@@ -42,6 +38,32 @@ The getDrivers() function can/should be run from the current working directory o
 
 ### Species Expansion
 
+    R> year = 2019  #Vectorized in year. year=2018:2023 works. 
+    R> pacfinSpp = getPacfinSppData(year)
+
+    Reading PacFIN Species Data From PacFIN Connection...
+    PacFIN User: ********
+    Password: ************
+
+    R> calcomSpp = getCalcomSppData(year)
+
+    Reading CALCOM Species Data From CALCOM Connection...
+    CALCOM User: ********
+    Password: ****************
+
+    R> sppExp = estSppComp(pacfinSpp, calcomSpp)
+    R> exportSpp(sppExp)
+
 ### Length Expansion
+
+    R> year = 2019  #Vectorized in year. year=2018:2023 works. 
+
+    R> calcomLen = getCalcomLenData(year)
+
+    Reading CALCOM Length Data From CALCOM Connection...
+    CALCOM User: ********
+    Password: ****************
+
+    R> lenExp = estLenComp(calcomLen)
 
 <!-- Age Expansion -->
