@@ -36,18 +36,18 @@ The getDrivers() function can/should be run from the current working directory o
 
 ## Package Use
 
-Calcom expansions combine information from both the PacFIN and CalCOM
-databses and are completed on a yearly basis. The `calcomExpansions`
+Calcom expansions combine information from both the PacFIN and Calcom
+databases and are completed on a yearly basis. The `calcomExpansions`
 package provides functions for gathering and preparing the data
-neccessary for completing expansions, and several core functions for
+necessary for completing expansions, and several core functions for
 executing and exporting species and length expansions (age expansions
 coming soon).
 
 A typical use-case for this package will require access to both the
-PacFIN and CalCOM databases. If you have not setup database access for
+PacFIN and Calcom databases. If you have not setup database access for
 these databases you will need to arrange access to these databases prior
 to using this package. Contact XXXX for access to the PacFIN database.
-Contact YYYY for access to the CalCOM database and/or PSMFC VPN.
+Contact YYYY for access to the Calcom database and/or PSMFC VPN.
 
 ### Species Expansion
 
@@ -55,11 +55,11 @@ The data for species expansions are collected and prepared by the two
 helper functions `getPacfinSppData` and `getCalcomSppData`.
 
 The `getPacfinSppData(year, save = F, fromFile = F)` function prepares
-an R data.frame from the neccessary PacFIN database calls needed to
+an R data.frame from the necessary PacFIN database calls needed to
 perform a species expansion. By default this function connects to the
 PacFIN database to prepare its output. If run with `save=True`, then the
-output will be saved to a local csv file for replicability and/or
-convienience purposes. If a local csv is present on your system,
+output will be saved to a local csv file for reproducibility and/or
+convenience purposes. If a local csv is present on your system,
 `getPacfinSppData` can be run with `fromFile=True` to bypass VPN and
 database connections.
 
@@ -73,11 +73,11 @@ A typical use will look like:
     Password: ************
 
 Similarly the `getCalcomSppData(year, save = F, fromFile = F)` function
-prepares an R list from the neccessary Calcom database calls needed to
+prepares an R list from the necessary Calcom database calls needed to
 perform a species expansion. By default this function connects to the
 Calcom database to prepare its output. If run with `save=True`, then the
-output will be saved to a local .rda file for replicability and/or
-convience purposes. If a local .rda is present on your system,
+output will be saved to a local .rda file for reproducibility and/or
+convenience purposes. If a local .rda is present on your system,
 `getCalcomSppData` can be run with `fromFile=True` to bypass VPN and
 database connections.
 
@@ -99,12 +99,12 @@ The
 `estSppComp(pacfinData, calcomData, portBorr = portMatrix2, qtrBorr = qtrMatrix, files = T)`
 function uses the two optional arguments `portBorr` and `qtrBorr` to
 establish port complex and quarter borrowing rules to expand strata in
-which no data exists. By default the matricies `portMatrix2` and
-`qtrMatrix` are supplied which define the long established borrowing
-standards used by Calcom (CITE). For more details about the structure of
-these matrices, and the borrowing rules they imply, see the R help pages
-for these data structures (i.e. `?portMatrix2' or`?qtrMatrix\` in an R
-shell).
+which no data exists. By default the matrices `portMatrix2` and
+`qtrMatrix` are supplied which define the established species expansion
+borrowing standards used by Calcom (CITE). For more details about the
+structure of these matrices, and the borrowing rules they imply, see the
+R help pages for these data structures
+(i.e. `?portMatrix2' or`?qtrMatrix\` in an R shell).
 
 If manual adjusting of particular borrows are required (exceptions to
 the borrowing rules implied by the given portBorr and qtrBorr arguments)
@@ -112,8 +112,8 @@ the
 `estSppCompDoc(pacfinData, calcomData, doc = "sppdocYYYY.csv", qtrBorr = qtrMatrix, files = T)`
 function may be used to to modify the borrows performed by `estSppComp`.
 For more details about editing particular borrows via the expansion
-documentation files see the R help page for these data `estSppCompDoc`
-(i.e. `?estSppCompDoc` in an R shell)
+documentation files see the R help page for the `estSppCompDoc` function
+(i.e. `?estSppCompDoc` in an R shell).
 
 Once the expansion is complete the results may be exported in several
 different formats by the
@@ -123,9 +123,8 @@ formats available (i.e. `?exportSpp` in an R shell).
 
     R> exportSpp(sppExp)
 
-Stripping out the commentary from the above commands results in the
-following simple example of what a default expansion in 2019entails in
-R.
+Stripping out the commentary from the above examples results in a
+default species expansion in R.
 
     R> year = 2019  #Vectorized in year. year=2018:2023 would also work. 
     R> pacfinSpp = getPacfinSppData(year)
@@ -145,8 +144,52 @@ R.
 
 ### Length Expansion
 
-    R> year = 2019  #Vectorized in year. year=2018:2023 would also work. 
+Length (and age) expansions depend on the species expansion results in
+given year. Thus, if the species expansion for the year of interest has
+not been updated in Calcom, the species expansions should be completed
+and exported to Calcom prior to performing the Length expansion.
 
+The length expansion does not directly depend on PacFIN. Therefore the
+data preparation for length expansions only involves the function
+`getCalcomLenData(year, save = F, fromFile = F)`. This function behaves
+largely the same as `getCalcomSppData`, with arguments for saving the
+prepared data locally as well as an option to read in previously
+prepared data from file.
+
+    R> year = 2019 
+    R> calcomLen = getCalcomLenData(year)
+
+    Reading CALCOM Length Data From CALCOM Connection...
+    CALCOM User: ********
+    Password: ****************
+
+Once both the Calcom data has been prepared, the data can be passed to
+the `estLenComp` function to perform the length composition expansion.
+
+    R> lenExp = estLenComp(calcomLen)
+
+Similarly to `estSppComp`, the
+`estLenComp(calcomData, portBorr = portMatrix1, files = T)` function
+uses the optional argument `portBorr` to establish port complex
+borrowing rules to expand length to strata in which no data exists. By
+default the matrices `portMatrix1` is supplied which defines the
+established borrowing standards used by Calcom (CITE) length expansions.
+For more details about the structure of this matrices, and the borrowing
+rules it implies, see the R help page for this data structure
+(i.e. \`?portMatrix1 in an R shell).
+
+If manual adjusting of particular borrows are required (exceptions to
+the borrowing rules implied by the given portBorr argument) the
+`estLenCompDoc(calcomData, doc = "lendocYYYY.csv", files = T)` function
+may be used to to modify the borrows performed by `estLenComp`. For more
+details about editing particular borrows via the expansion documentation
+files see the R help page for the `estLenCompDoc` function
+(i.e. `?estLenCompDoc` in an R shell).
+
+Stripping out the commentary from the above length expansion example
+results in a default length expansion in R.
+
+    R> year = 2019  #Vectorized in year. year=2018:2023 would also work. 
     R> calcomLen = getCalcomLenData(year)
 
     Reading CALCOM Length Data From CALCOM Connection...
@@ -155,6 +198,6 @@ R.
 
     R> lenExp = estLenComp(calcomLen)
 
-### Age Expasion Coming Soon…
+### Age Expansion Coming Soon…
 
 <!-- Age Expansion -->
