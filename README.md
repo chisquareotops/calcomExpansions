@@ -109,7 +109,7 @@ shell).
 If manual adjusting of particular borrows are required (exceptions to
 the borrowing rules implied by the given portBorr and qtrBorr arguments)
 the
-`estSppCompDoc(pacfinData, calcomData, doc = sprintf("sppdoc%s.csv", unique(pacfinData$YR)), qtrBorr = qtrMatrix, files = T)`
+`estSppCompDoc(pacfinData, calcomData, doc = "sppdocYYYY.csv", qtrBorr = qtrMatrix, files = T)`
 function may be used to to modify the borrows performed by `estSppComp`.
 For more details about editing particular borrows via the expansion
 documentation files see the R help page for these data `estSppCompDoc`
