@@ -8,7 +8,7 @@ Authors@R:
              role = c("aut", "cre"),
              email = "nick.grunloh@noaa.gov"))
 Description: A automated version of Don's Visual Basic calcom expansion code rewritten in R. 
-License: file LICENSE
+License: LGPL (>= 2.1)
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
