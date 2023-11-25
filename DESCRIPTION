@@ -3,10 +3,16 @@ Title: Calcom Expansions
 Version: 0.1.0
 Date: 2023-11-15
 Authors@R: 
-    c(person(given = "Nicholas",
+    	c(
+	person(given = "Nicholas",
              family = "Grunloh",
              role = c("aut", "cre"),
-             email = "nick.grunloh@noaa.gov"))
+             email = "nick.grunloh@noaa.gov"),
+	person(given="Edward",
+		family="Dick",
+		role=c("ctb"),
+		email="edward.dick@noaa.gov")
+	)
 Description: A automated version of Don's Visual Basic calcom expansion code rewritten in R. 
 License: LGPL (>= 2.1)
 Encoding: UTF-8
