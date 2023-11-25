@@ -101,10 +101,10 @@ function uses the two optional arguments `portBorr` and `qtrBorr` to
 establish port complex and quarter borrowing rules to expand strata in
 which no data exists. By default the matrices `portMatrix2` and
 `qtrMatrix` are supplied which define the established species expansion
-borrowing standards used by Calcom (CITE). For more details about the
-structure of these matrices, and the borrowing rules they imply, see the
-R help pages for these data structures
-(i.e. `?portMatrix2' or`?qtrMatrix\` in an R shell).
+borrowing standards used by Calcom (Pearson, D. E. and Erwin, B., 1997).
+For more details about the structure of these matrices, and the
+borrowing rules they imply, see the R help pages for these data
+structures (i.e. `?portMatrix2' or`?qtrMatrix\` in an R shell).
 
 If manual adjusting of particular borrows are required (exceptions to
 the borrowing rules implied by the given portBorr and qtrBorr arguments)
@@ -173,10 +173,10 @@ Similarly to `estSppComp`, the
 uses the optional argument `portBorr` to establish port complex
 borrowing rules to expand length to strata in which no data exists. By
 default the matrices `portMatrix1` is supplied which defines the
-established borrowing standards used by Calcom (CITE) length expansions.
-For more details about the structure of this matrices, and the borrowing
-rules it implies, see the R help page for this data structure
-(i.e. \`?portMatrix1 in an R shell).
+established borrowing standards used by Calcom (Pearson, D. E. and
+Erwin, B. (1997)) length expansions. For more details about the
+structure of this matrices, and the borrowing rules it implies, see the
+R help page for this data structure (i.e. \`?portMatrix1 in an R shell).
 
 If manual adjusting of particular borrows are required (exceptions to
 the borrowing rules implied by the given portBorr argument) the
@@ -201,3 +201,8 @@ results in a default length expansion in R.
 ### Age Expansion Coming Soon…
 
 <!-- Age Expansion -->
+
+## Bibliography
+
+Pearson, D. E. and Erwin, B. (1997). Documentation of California’s
+commercial market sampling data entry and expansion programs.
