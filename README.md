@@ -11,9 +11,13 @@ rewritten in R.
 
 ## Installation
 
-Before installing the calcomExpansions package you should ensure that
-Java is installed on your computer. Please visit <http://www.java.com>
-for information on installing Java on your particular system.
+Before installing the calcomExpansions package please ensure that [Java
+JDK](https://www.oracle.com/java/technologies/downloads/) is installed
+on your computer. Note that R and Java must have the same memory
+signature, either 32 or 64 bit.
+<!-- and Java JDK are installed on your computer. Please visit http://www.java.com for 
+information on installing Java on your particular system.
+-->
 
 To install the latest version of the `calcomExpansions` package you can
 run the following in an R shell:
