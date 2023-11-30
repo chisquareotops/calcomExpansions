@@ -50,8 +50,10 @@ coming soon).
 A typical use-case for this package will require access to both the
 PacFIN and Calcom databases. If you have not setup database access for
 these databases you will need to arrange access to these databases prior
-to using this package. Contact XXXX for access to the PacFIN database.
-Contact YYYY for access to the Calcom database and/or PSMFC VPN.
+to using this package. <!--
+Contact XXXX for access to the PacFIN database. Contact YYYY for 
+access to the Calcom database and/or PSMFC VPN.
+-->
 
 ### Species Expansion
 
@@ -151,7 +153,7 @@ default species expansion in R.
 Length (and age) expansions depend on the species expansion results in
 given year. Thus, if the species expansion for the year of interest has
 not been updated in Calcom, the species expansions should be completed
-and exported to Calcom prior to performing the Length expansion.
+and exported to Calcom prior to performing the length expansion.
 
 The length expansion does not directly depend on PacFIN. Therefore the
 data preparation for length expansions only involves the function
