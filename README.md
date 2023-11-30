@@ -6,8 +6,8 @@
 <!-- badges: start -->
 <!-- badges: end -->
 
-An automated version of the SWFSC Visual Basic CALCOM expansion code
-(by D. Pearson, SWFSC, retired) rewritten in R.
+An automated version of the SWFSC Visual Basic CALCOM expansion code (by
+D. Pearson, SWFSC, retired) rewritten in R.
 
 ## Installation
 
@@ -56,11 +56,7 @@ Contact YYYY for access to the Calcom database and/or PSMFC VPN.
 ### Species Expansion
 
 The data for species expansions are collected and prepared by the two
-helper functions `getPacfinSppData` and `getCalcomSppData`. The function
-`getPacfinSppData` retrieves landing receipt data (pounds landed by
-market category with auxiliary information, e.g. gear type). The function
-`getCalcomSppData` retrieves species composition data collected by
-commercial port samplers.
+helper functions `getPacfinSppData` and `getCalcomSppData`.
 
 The `getPacfinSppData(year, save = F, fromFile = F)` function prepares
 an R data.frame from the necessary PacFIN database calls needed to
@@ -180,11 +176,11 @@ Similarly to `estSppComp`, the
 `estLenComp(calcomData, portBorr = portMatrix1, files = T)` function
 uses the optional argument `portBorr` to establish port complex
 borrowing rules to expand length to strata in which no data exists. By
-default the matrices `portMatrix1` is supplied which defines the
+default the matrix `portMatrix1` is supplied which defines the
 established borrowing standards used by Calcom (Pearson, D. E. and
 Erwin, B. (1997)) length expansions. For more details about the
-structure of this matrix, and the borrowing rules it implies, see the
-R help page for this data structure (i.e. \`?portMatrix1 in an R shell).
+structure of this matrix, and the borrowing rules it implies, see the R
+help page for this data structure (i.e. \`?portMatrix1 in an R shell).
 
 If manual adjusting of particular borrows are required (exceptions to
 the borrowing rules implied by the given portBorr argument) the
@@ -212,8 +208,14 @@ results in a default length expansion in R.
 
 ## Bibliography
 
-Pearson, D. E. and Erwin, B. (1997). [Documentation of California’s
-commercial market sampling data entry and expansion programs.](https://repository.library.noaa.gov/view/noaa/4734)
+<!--
+Pearson, D. E. and Erwin, B. (1997). Documentation of California’s commercial market sampling data entry and expansion programs.
+-->
 
-Pearson, D., Erwin, B. and Key, M. (2008). [Reliability of California's
-groundfish landing estimates from 1969-2006.](https://repository.library.noaa.gov/view/noaa/3616)
+Pearson, D. E. and Erwin, B. (1997). [Documentation of California’s
+commercial market sampling data entry and expansion
+programs.](https://repository.library.noaa.gov/view/noaa/4734)
+
+Pearson, D., Erwin, B. and Key, M. (2008). [Reliability of California’s
+groundfish landing estimates from
+1969-2006.](https://repository.library.noaa.gov/view/noaa/3616)

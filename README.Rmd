@@ -18,7 +18,8 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
-An automated version of Don's Visual Basic calcom expansion code rewritten in R. 
+An automated version of the SWFSC Visual Basic CALCOM expansion code
+(by D. Pearson, SWFSC, retired) rewritten in R.
 
 ## Installation
 
@@ -116,9 +117,10 @@ function uses the two optional arguments `portBorr` and `qtrBorr` to establish
 port complex and quarter borrowing rules to expand strata in which no data 
 exists. By default the matrices `portMatrix2` and `qtrMatrix` are supplied 
 which define the established species expansion borrowing standards used by 
-Calcom (Pearson, D. E. and Erwin, B., 1997). For more details about the structure of these matrices, and the 
-borrowing rules they imply, see the R help pages for these data structures 
-(i.e. `?portMatrix2' or `?qtrMatrix` in an R shell). 
+Calcom (Pearson, D. E. and Erwin, B., 1997). For more details about the 
+structure of these matrices, and the borrowing rules they imply, see the R 
+help pages for these data structures (i.e. `?portMatrix2' or `?qtrMatrix` in 
+an R shell). 
 
 If manual adjusting of particular borrows are required (exceptions to the 
 borrowing rules implied by the given portBorr and qtrBorr arguments) the 
@@ -187,10 +189,10 @@ R> lenExp = estLenComp(calcomLen)
 Similarly to `estSppComp`, the `estLenComp(calcomData, portBorr = portMatrix1, files = T)`
 function uses the optional argument `portBorr` to establish port complex 
 borrowing rules to expand length to strata in which no data exists. By default 
-the matrices `portMatrix1` is supplied which defines the established 
-borrowing standards used by Calcom (Pearson, D. E. and Erwin, B. (1997)) length expansions. For more 
-details about the structure of this matrices, and the borrowing rules
-it implies, see the R help page for this data structure 
+the matrix `portMatrix1` is supplied which defines the established 
+borrowing standards used by Calcom (Pearson, D. E. and Erwin, B. (1997)) 
+length expansions. For more details about the structure of this matrix, and 
+the borrowing rules it implies, see the R help page for this data structure 
 (i.e. `?portMatrix1 in an R shell).
 
 If manual adjusting of particular borrows are required (exceptions to the
@@ -221,6 +223,12 @@ R> lenExp = estLenComp(calcomLen)
 
 ## Bibliography
 
+<!--
 Pearson, D. E. and Erwin, B. (1997). Documentation of California’s commercial market sampling data entry and expansion programs.
+-->
 
+Pearson, D. E. and Erwin, B. (1997). [Documentation of California’s
+commercial market sampling data entry and expansion programs.](https://repository.library.noaa.gov/view/noaa/4734)
 
+Pearson, D., Erwin, B. and Key, M. (2008). [Reliability of California's
+groundfish landing estimates from 1969-2006.](https://repository.library.noaa.gov/view/noaa/3616)
