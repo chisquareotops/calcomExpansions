@@ -163,7 +163,7 @@ R> exportSpp(sppExp)
 Length (and age) expansions depend on the species expansion results in given 
 year. Thus, if the species expansion for the year of interest has not been 
 updated in Calcom, the species expansions should be completed and exported to 
-Calcom prior to performing the Length expansion.
+Calcom prior to performing the length expansion.
 
 The length expansion does not directly depend on PacFIN. Therefore the data 
 preparation for length expansions only involves the function 
