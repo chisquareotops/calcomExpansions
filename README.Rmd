@@ -63,8 +63,11 @@ length expansions (age expansions coming soon).
 A typical use-case for this package will require access to both the PacFIN and 
 Calcom databases. If you have not setup database access for these databases 
 you will need to arrange access to these databases prior to using this 
-package. Contact XXXX for access to the PacFIN database. Contact YYYY for 
+package. 
+<!--
+Contact XXXX for access to the PacFIN database. Contact YYYY for 
 access to the Calcom database and/or PSMFC VPN.
+-->
 
 ### Species Expansion
 
