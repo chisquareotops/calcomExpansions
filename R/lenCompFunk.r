@@ -78,7 +78,7 @@ howFar = Vectorize(howFar, 'bor')
 #' @param year  The year of the expansion given as a four digit integer. Year may 
 #'      be given as a vector to prepare data for a multi-year expansion.
 #' @param save  A filename.csv to save data to file or a logical. If save=True 
-#'      the filename defalts to sprintf('calcom%sSppData%s', year, Sys.time()); 
+#'      the filename defalts to sprintf('calcom%sLenData%s', year, Sys.time()); 
 #'      save=False (Default) does not save.
 #' @param fromFile A filename.csv to read data from file or a logical. 
 #'      fromFile=True defaults to the most recent sprintf('pacfin%sData*', year) 
@@ -89,9 +89,9 @@ howFar = Vectorize(howFar, 'bor')
 getCalcomLenData = function(year, save=F, fromFile=F){
 	#year     : the year of the expansion. 
         #save     : a filename.RData to save data to file or a logical.
-        #               True defaults to the filename sprintf('calcom%sData%s', year, Sys.time()); False (Default) does not save.
+        #               True defaults to the filename sprintf('calcom%sLenData%s', year, Sys.time()); False (Default) does not save.
         #fromFile : a filename.rda to read data from file or a logical.
-        #               True defaults to the most recent sprintf('calcom%sData*', year) file; False (Default) reads data from calcom.
+        #               True defaults to the most recent sprintf('calcom%sLenData*', year) file; False (Default) reads data from calcom.
         #
         #value    : returns a list of all of the various objects in calcom needed to compute an expansion in the given year.
 	
