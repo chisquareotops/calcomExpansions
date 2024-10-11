@@ -70,24 +70,24 @@ howFar = Vectorize(howFar, 'bor')
 #HEADER
 #
 
-#future inputs
-year = 2002 #2022 #2018 #2
-#NOTE: throw an error if year less 1975
-
+##future inputs
+#year = 2002 #2022 #2018 #2
+##NOTE: throw an error if year less 1975
 #
-map = c('CRS', 'ERK', 'BRG', 'BDG', 'OSF', 'MNT', 'MRO', 'OSB', 'OLA', 'OSD')
-
+##
+#map = c('CRS', 'ERK', 'BRG', 'BDG', 'OSF', 'MNT', 'MRO', 'OSB', 'OLA', 'OSD')
 #
-qtrMatrix = matrix(
-        c(
-        2, 3, 4,
-        3, 1, 4,
-        2, 4, 1,
-        3, 2, 1
-        ),
-4, 3, byrow=T)
-colnames(qtrMatrix) = c('first', 'second', 'third')
-rownames(qtrMatrix) = 1:4
+##
+#qtrMatrix = matrix(
+#        c(
+#        2, 3, 4,
+#        3, 1, 4,
+#        2, 4, 1,
+#        3, 2, 1
+#        ),
+#4, 3, byrow=T)
+#colnames(qtrMatrix) = c('first', 'second', 'third')
+#rownames(qtrMatrix) = 1:4
 
 ##Two Ports Away, No Conception
 #portMatrix = matrix( 
@@ -107,23 +107,23 @@ rownames(qtrMatrix) = 1:4
 #colnames(portMatrix) = c('first', 'second', 'third', 'fourth', 'fifth')
 #rownames(portMatrix) = c('CRS', 'ERK', 'BRG', 'BDG', 'OSF', 'MNT', 'MRO', 'OSB', 'OLA', 'OSD')
 
-#One Port Away, No Conception
-portMatrix1 = matrix(
-        c(
-        'ERK', 'NOMINAL', 'NOMINAL', 'NOMINAL', 'NOMINAL',
-        'CRS', 	   'BRG', 'NOMINAL', 'NOMINAL', 'NOMINAL',
-        'ERK',     'BDG', 'NOMINAL', 'NOMINAL', 'NOMINAL',
-        'OSF',     'BRG', 'NOMINAL', 'NOMINAL', 'NOMINAL',
-        'BDG',     'MNT', 'NOMINAL', 'NOMINAL', 'NOMINAL',
-        'OSF',     'MRO', 'NOMINAL', 'NOMINAL', 'NOMINAL',
-        'MNT', 'NOMINAL', 'NOMINAL', 'NOMINAL', 'NOMINAL',
-        'OLA', 'NOMINAL', 'NOMINAL', 'NOMINAL', 'NOMINAL',
-        'OSB',     'OSD', 'NOMINAL', 'NOMINAL', 'NOMINAL',
-        'OLA', 'NOMINAL', 'NOMINAL', 'NOMINAL', 'NOMINAL'
-        ),	
-10, 5, byrow=T)
-colnames(portMatrix) = c('first', 'second', 'third', 'fourth', 'fifth')
-rownames(portMatrix) = c('CRS', 'ERK', 'BRG', 'BDG', 'OSF', 'MNT', 'MRO', 'OSB', 'OLA', 'OSD')
+##One Port Away, No Conception
+#portMatrix1 = matrix(
+#        c(
+#        'ERK', 'NOMINAL', 'NOMINAL', 'NOMINAL', 'NOMINAL',
+#        'CRS', 	   'BRG', 'NOMINAL', 'NOMINAL', 'NOMINAL',
+#        'ERK',     'BDG', 'NOMINAL', 'NOMINAL', 'NOMINAL',
+#        'OSF',     'BRG', 'NOMINAL', 'NOMINAL', 'NOMINAL',
+#        'BDG',     'MNT', 'NOMINAL', 'NOMINAL', 'NOMINAL',
+#        'OSF',     'MRO', 'NOMINAL', 'NOMINAL', 'NOMINAL',
+#        'MNT', 'NOMINAL', 'NOMINAL', 'NOMINAL', 'NOMINAL',
+#        'OLA', 'NOMINAL', 'NOMINAL', 'NOMINAL', 'NOMINAL',
+#        'OSB',     'OSD', 'NOMINAL', 'NOMINAL', 'NOMINAL',
+#        'OLA', 'NOMINAL', 'NOMINAL', 'NOMINAL', 'NOMINAL'
+#        ),	
+#10, 5, byrow=T)
+#colnames(portMatrix1) = c('first', 'second', 'third', 'fourth', 'fifth')
+#rownames(portMatrix1) = c('CRS', 'ERK', 'BRG', 'BDG', 'OSF', 'MNT', 'MRO', 'OSB', 'OLA', 'OSD')
 
 #
 #DATABASE FUNCTIONS
@@ -193,16 +193,18 @@ getCalcomAgeData = function(year, save=F, fromFile=F){
 			# CALCOM is an MS-SQL server on the PSMFC VPN
 			# sqljdbc4.jar file is required for creating the microsoft sql driver
 			
-			#the lazy version
-			mDrv = RJDBC::JDBC('com.microsoft.sqlserver.jdbc.SQLServerDriver', './sqljdbc4.jar', identifier.quote="'")
-			# CALCOM connection
-			mCon = RJDBC::dbConnect(mDrv, 'jdbc:sqlserver://sql2016.psmfc.org\\calcom;databaseName=CALCOM', 'ngrunloh', 'calcom!PSMFC2022') #
-			##NOTE: swap out passwords for getPass call
-			##NOTE: swap out dirver for 
-			#mDrv = RJDBC::JDBC('com.microsoft.sqlserver.jdbc.SQLServerDriver', system.file("drivers/sqljdbc4.jar", package="calcomExpansions"), identifier.quote="'")
-        		## CALCOM connection
-        		#writeLines("\nReading CALCOM Age Data From CALCOM Connection...")
-        		#mCon = RJDBC::dbConnect(mDrv, 'jdbc:sqlserver://sql2016.psmfc.org\\calcom;databaseName=CALCOM', getPass::getPass('CALCOM User: '), getPass::getPass('Password: ')) 
+			##the lazy version
+			#mDrv = RJDBC::JDBC('com.microsoft.sqlserver.jdbc.SQLServerDriver', './sqljdbc4.jar', identifier.quote="'")
+			## CALCOM connection
+			#mCon = RJDBC::dbConnect(mDrv, 'jdbc:sqlserver://sql2016.psmfc.org\\calcom;databaseName=CALCOM', 'ngrunloh', 'calcom!PSMFC2022') #
+			#NOTE: swap out passwords for getPass call
+			#NOTE: swap out dirver for 
+			mDrv = RJDBC::JDBC('com.microsoft.sqlserver.jdbc.SQLServerDriver', system.file("drivers/sqljdbc4.jar", package="calcomExpansions"), identifier.quote="'")
+        		# CALCOM connection	
+        		mCon = RJDBC::dbConnect(mDrv, 'jdbc:sqlserver://sql2016.psmfc.org\\calcom;databaseName=CALCOM', getPass::getPass('CALCOM User: '), getPass::getPass('Password: ')) 
+			
+			#
+			writeLines("\nReading CALCOM Age Data From CALCOM Connection...")
 			
 			#
         		tempAge1 = c()
@@ -277,6 +279,7 @@ getCalcomAgeData = function(year, save=F, fromFile=F){
 				#NOTE: dont remove NA just count the non NAs
 			}
 			tempAge1$LBS = as.numeric(tempAge1$LBS)
+			tempAge2$YR = as.numeric(tempAge2$YR)
 
 			#exit loop when this eventually doesn't error
         		flag = F
@@ -323,10 +326,10 @@ getCalcomAgeData = function(year, save=F, fromFile=F){
 #EXPANSION FUNCTIONS
 #
 
-#' The core expansion function executing an automated length expansion of Don's 
+#' The core expansion function executing an automated age expansion of Don's 
 #' Visual Basic code.
 #' 
-#' @param calcomLenData A list as returned by getCalcomLenData.
+#' @param calcomAgeData A list as returned by getCalcomAgeData.
 #' @param portBorr      A matrix to define the priority of port borrowing. 
 #'      Rownames should indicate the port complex code of the actual stratum to 
 #'      be filled. The first column contains the first priorty for borrowing 
@@ -376,7 +379,10 @@ estAgeComp = function(calcomAgeData, portBorr=portMatrix1, files=T){
 	isNoAges = c()
 	for(i in 1:length(fishYear)){
 		#	
-		ages = calcomAgeData$tempAge4[substr(calcomAgeData$tempAge4$sample_no, 1, 4)==fishYear[i],'age']
+		ages = calcomAgeData$tempAge4[
+			substr(calcomAgeData$tempAge4$sample_no, 1, 4)==fishYear[i] &
+			!calcomAgeData$tempAge4$species%in%notSpp
+		,'age']
 		isNoAges = c(isNoAges, all(is.na(ages)))
 	}
 	#
@@ -418,14 +424,14 @@ estAgeComp = function(calcomAgeData, portBorr=portMatrix1, files=T){
 		agect1 = tempAge2
 		colnames(agect1) = c('yr', 'species', 'live', 'gear', 'port', 'mcat', 'agect')
 		
-		#
+		#	
 		agestrat2 = merge(landstrat1[,-1], agect1[,-1], all.x=T)
 		agestrat2$agect[is.na(agestrat2$agect)] = 0
 		#remove rows where the sample count is below 10 where the lbs are also below 10
 		agestrat2 = agestrat2[!(agestrat2$agect<10 & agestrat2$lbs<10),]
-	
+		
 		#Get Length Data
-
+		
 		#for every stratum, age, length, and sex
 		#identify totLbs, alsLbs, totCt, alsCt, expLands 
 			
@@ -470,7 +476,7 @@ estAgeComp = function(calcomAgeData, portBorr=portMatrix1, files=T){
 		#Working...
 		
 		#
-		nc = sum(!agestrat2$species%in%notSpp)
+		nc = sum(!(agestrat2$species%in%notSpp))
 		ageuse = data.frame(agestrat2[!agestrat2$species%in%notSpp,], borrSpecies=character(nc), borrLive=character(nc), borrGear=character(nc), borrPort=character(nc), borrMcat=character(nc), ageSource=character(nc))
 		#actuals
 		aWho = ageuse$agect>ctThresh
@@ -496,8 +502,9 @@ estAgeComp = function(calcomAgeData, portBorr=portMatrix1, files=T){
 			
 			#
 			borr = rep("I", 6)
+			#NOTE: in 2017 an unknown port appears that creates an error
 			#port priority for the given missing strata
-		        portPriority = portMatrix[ageuse$port[i],]
+		        portPriority = portBorr[ageuse$port[i],]
 			fars = unlist(howFar(ageuse$port[i], portPriority))	
 			for(d in sort(unique(fars))){
 				# a version of portPriority that is at the radius d
@@ -621,7 +628,7 @@ estAgeComp = function(calcomAgeData, portBorr=portMatrix1, files=T){
 		        	        sampfish$sample_no==sid &
 		        	        sampfish$species==samp[i,'species']
 		        	,]
-				h = hist2(fish$age, fish$sex, xbreaks=0:99, ybreaks=c(1,2,3,9), plot=F)
+				h = squash::hist2(fish$age, fish$sex, xbreaks=0:99, ybreaks=c(1,2,3,9), plot=F)
 				hz = h$z
 				hz[is.na(hz)] = 0
 				#avgLN, avgAN, or totLbs
@@ -846,7 +853,7 @@ estAgeCompDoc = function(calcomAgeData, doc=sprintf("agedoc%s.csv", unique(calco
 			##NOTE: no neeeded in the doc version
 			#borr = rep("I", 6)
 			##port priority for the given missing strata
-		        #portPriority = portMatrix[ageuse$port[i],]
+		        #portPriority = portBorr[ageuse$port[i],]
 			#fars = unlist(howFar(ageuse$port[i], portPriority))	
 			#for(d in sort(unique(fars))){
 			#	# a version of portPriority that is at the radius d
@@ -970,7 +977,7 @@ estAgeCompDoc = function(calcomAgeData, doc=sprintf("agedoc%s.csv", unique(calco
 		        	        sampfish$sample_no==sid &
 		        	        sampfish$species==samp[i,'species']
 		        	,]
-				h = hist2(fish$age, fish$sex, xbreaks=0:99, ybreaks=c(1,2,3,9), plot=F)
+				h = squash::hist2(fish$age, fish$sex, xbreaks=0:99, ybreaks=c(1,2,3,9), plot=F)
 				hz = h$z
 				hz[is.na(hz)] = 0
 				#avgLN, avgAN, or totLbs

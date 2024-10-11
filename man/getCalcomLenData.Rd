@@ -11,7 +11,7 @@ getCalcomLenData(year, save = F, fromFile = F)
 be given as a vector to prepare data for a multi-year expansion.}
 
 \item{save}{A filename.csv to save data to file or a logical. If save=True
-the filename defalts to sprintf('calcom\%sSppData\%s', year, Sys.time());
+the filename defalts to sprintf('calcom\%sLenData\%s', year, Sys.time());
 save=False (Default) does not save.}
 
 \item{fromFile}{A filename.csv to read data from file or a logical.
