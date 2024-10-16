@@ -221,7 +221,9 @@ getPacfinSppData = function(year, save=F, fromFile=F){
 				#PacFIN connection
 				writeLines("\nReading PacFIN Species Data From PacFIN Connection...")
 				#template connection string:"jdbc:oracle:thin:@//database.hostname.com:port/service_name_or_sid"
-				oCon = RJDBC::dbConnect(oDrv, 'jdbc:oracle:thin:@//pacfindb.psmfc.org:2045/pacfin.psmfc.org', getPass::getPass('PacFIN User: '), getPass::getPass('Password: ')) 
+				name =  getPass::getPass('PacFIN User: ')
+				password  = getPass::getPass('Password: ')
+				oCon = RJDBC::dbConnect(oDrv, 'jdbc:oracle:thin:@//pacfindb.psmfc.org:2045/pacfin.psmfc.org', name, password) #getPass::getPass('PacFIN User: '), getPass::getPass('Password: ')) 
 				
 				#
 				pacfinTix = c()
