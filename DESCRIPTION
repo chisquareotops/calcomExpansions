@@ -24,6 +24,7 @@ Imports:
 	lares,
 	dplyr,
 	squash,
-	getPass
+	getPass,
+	askpass
 Depends: 
 	R (>= 2.10)
