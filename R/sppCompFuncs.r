@@ -253,7 +253,7 @@ getPacfinSppData = function(year, save=F, fromFile=F){
 				#name = askpass::askpass("PacFIN User: ") #getPass::getPass('PacFIN User: ')
 				#password = askpass::askpass("Password: ") #getPass::getPass('Password: ')
 				x = getLoginDetails("PacFIN Login", "PacFIN User Name", "PacFIN Password", "PacFIN Login:")
-				oCon = RJDBC::dbConnect(oDrv, 'jdbc:oracle:thin:@//pacfindb.psmfc.org:2045/pacfin.psmfc.org', x$loginID, x$password) #getPass::getPass('PacFIN User: '), getPass::getPass('Password: ')) 
+				oCon = RJDBC::dbConnect(oDrv, 'jdbc:oracle:thin:@//pacfindb.psmfc.org:2045/pacfin.psmfc.org', x['loginID'], x['password']) #getPass::getPass('PacFIN User: '), getPass::getPass('Password: ')) 
 				
 				#
 				pacfinTix = c()
