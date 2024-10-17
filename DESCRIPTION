@@ -24,6 +24,7 @@ Imports:
 	lares,
 	dplyr,
 	squash,
+	tcltk,
 	getPass,
 	askpass
 Depends: 

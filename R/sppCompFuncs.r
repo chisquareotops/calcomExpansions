@@ -84,6 +84,35 @@ expDiff = function(exp1, exp2, by=NULL){
 	return(list(twoNeeds=exp2Needs, oneNeeds=exp1Needs))
 }
 
+getLoginDetails <- function(window, login, password, prompt){
+  ## Based on code by Barry Rowlingson
+  ## http://r.789695.n4.nabble.com/tkentry-that-exits-after-RETURN-tt854721.html#none
+  	#require(tcltk)
+  	tt <- tcltk::tktoplevel()
+  	tcltk::tkwm.title(tt, window)
+  	Name <- tcltk::tclVar(login)
+  	Password <- tcltk::tclVar(password)
+  	entry.Name <- tcltk::tkentry(tt,width="20", textvariable=Name)
+  	entry.Password <- tcltk::tkentry(tt, width="20", show="*", 
+  	                          textvariable=Password)
+  	tcltk::tkgrid(tcltk::tklabel(tt, text=prompt))
+  	tcltk::tkgrid(entry.Name)
+  	tcltk::tkgrid(entry.Password)
+
+  	OnOK <- function()
+  	{ 
+  	  tcltk::tkdestroy(tt) 
+  	}
+  	OK.but <- tcltk::tkbutton(tt,text=" Login ", command=OnOK)
+  	tcltk::tkbind(entry.Password, "<Return>", OnOK)
+  	tcltk::tkgrid(OK.but)
+  	tcltk::tkfocus(tt)
+  	tcltk::tkwait.window(tt)
+
+	#
+	invisible(c(loginID=tcltk::tclvalue(Name), password=tcltk::tclvalue(Password)))
+}
+
 #
 #DATABASE FUNCTIONS
 #
@@ -221,9 +250,10 @@ getPacfinSppData = function(year, save=F, fromFile=F){
 				#PacFIN connection
 				writeLines("\nReading PacFIN Species Data From PacFIN Connection...")
 				#template connection string:"jdbc:oracle:thin:@//database.hostname.com:port/service_name_or_sid"
-				name = askpass::askpass("PacFIN User: ") #getPass::getPass('PacFIN User: ')
-				password = askpass::askpass("Password: ") #getPass::getPass('Password: ')
-				oCon = RJDBC::dbConnect(oDrv, 'jdbc:oracle:thin:@//pacfindb.psmfc.org:2045/pacfin.psmfc.org', name, password) #getPass::getPass('PacFIN User: '), getPass::getPass('Password: ')) 
+				#name = askpass::askpass("PacFIN User: ") #getPass::getPass('PacFIN User: ')
+				#password = askpass::askpass("Password: ") #getPass::getPass('Password: ')
+				x = getLoginDetails("PacFIN Login", "PacFIN User Name", "PacFIN Password", "PacFIN Login:")
+				oCon = RJDBC::dbConnect(oDrv, 'jdbc:oracle:thin:@//pacfindb.psmfc.org:2045/pacfin.psmfc.org', x$loginID, x$password) #getPass::getPass('PacFIN User: '), getPass::getPass('Password: ')) 
 				
 				#
 				pacfinTix = c()
@@ -602,7 +632,7 @@ exportSpp = function(exp, human=T, pacfin=T, calcom=F, doc=NULL){
 				mDrv = RJDBC::JDBC('com.microsoft.sqlserver.jdbc.SQLServerDriver', system.file("drivers/sqljdbc4.jar", package="calcomExpansions"), identifier.quote="'")
 				# CALCOM connection
 				writeLines("\nWriting Expansion to CALCOM Connection...")                  #CALCOM_test
-				mCon = RJDBC::dbConnect(mDrv, 'jdbc:sqlserver://sql2016.psmfc.org\\calcom;databaseName=CALCOM', getPass::getPass('CALCOM User: '), getPass::getPass('Password: '))
+				mCon = RJDBC::dbConnect(mDrv, 'jdbc:sqlserver://sql2016.psmfc.org\\calcom;databaseName=CALCOM_test', getPass::getPass('CALCOM User: '), getPass::getPass('Password: '))
 				
 				#
 				#dbWriteTable(ch, "bigNewIPTest", dat, row.names=F, overwrite=T)
@@ -657,6 +687,14 @@ exportSpp = function(exp, human=T, pacfin=T, calcom=F, doc=NULL){
 					#writeLines(sprintf("URCK lbs = %s", sum(toComLands$POUNDS[toComLands$SPECIES=='URCK'])))
 					##sum(toComLands$POUNDS[toComLands$SPECIES=='URCK'])
 				}
+				
+				##NOTE: run post expansion stored proceedure
+				##run the post expansion stored proceedure
+				##CALCOM.dbo.com_lands_post_expansion
+				#RJDBC::dbSendQuery(mCon, "EXEC com_lands_post_expansion")
+				##see the head of recent com_lands rows: confirm no species grp
+				##try running stored proceedure
+				##see same com_lands rows to confirm that the species groups were added
 						
 				#exit loop when this eventually doesn't error
 				flag = F
