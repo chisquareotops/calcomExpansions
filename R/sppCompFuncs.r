@@ -252,7 +252,7 @@ getPacfinSppData = function(year, save=F, fromFile=F){
 				#template connection string:"jdbc:oracle:thin:@//database.hostname.com:port/service_name_or_sid"
 				#name = askpass::askpass("PacFIN User: ") #getPass::getPass('PacFIN User: ')
 				#password = askpass::askpass("Password: ") #getPass::getPass('Password: ')
-				x = getLoginDetails("PacFIN Login", "PacFIN User Name", "PacFIN Password", "PacFIN Login:")
+				x = getLoginDetails("PacFIN Login", "PacFIN User", "", "PacFIN Login: \n(requires NOAA VPN)")
 				oCon = RJDBC::dbConnect(oDrv, 'jdbc:oracle:thin:@//pacfindb.psmfc.org:2045/pacfin.psmfc.org', x['loginID'], x['password']) #getPass::getPass('PacFIN User: '), getPass::getPass('Password: ')) 
 				
 				#
