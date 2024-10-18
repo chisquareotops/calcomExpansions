@@ -252,7 +252,7 @@ getPacfinSppData = function(year, save=F, fromFile=F){
 				#template connection string:"jdbc:oracle:thin:@//database.hostname.com:port/service_name_or_sid"
 				#name = askpass::askpass("PacFIN User: ") #getPass::getPass('PacFIN User: ')
 				#password = askpass::askpass("Password: ") #getPass::getPass('Password: ')
-				x = getLoginDetails("PacFIN Login", "PacFIN User", "", "PacFIN Login: \n(requires NOAA VPN)")
+				x = getLoginDetails("PacFIN Login", "User", "", "PacFIN Login: \n(requires NOAA VPN)")
 				oCon = RJDBC::dbConnect(oDrv, 'jdbc:oracle:thin:@//pacfindb.psmfc.org:2045/pacfin.psmfc.org', x['loginID'], x['password']) #getPass::getPass('PacFIN User: '), getPass::getPass('Password: ')) 
 				
 				#
@@ -632,7 +632,7 @@ exportSpp = function(exp, human=T, pacfin=T, calcom=F, doc=NULL){
 				mDrv = RJDBC::JDBC('com.microsoft.sqlserver.jdbc.SQLServerDriver', system.file("drivers/sqljdbc4.jar", package="calcomExpansions"), identifier.quote="'")
 				# CALCOM connection
 				writeLines("\nWriting Expansion to CALCOM Connection...")                  #CALCOM_test
-				mCon = RJDBC::dbConnect(mDrv, 'jdbc:sqlserver://sql2016.psmfc.org\\calcom;databaseName=CALCOM_test', getPass::getPass('CALCOM User: '), getPass::getPass('Password: '))
+				mCon = RJDBC::dbConnect(mDrv, 'jdbc:sqlserver://sql2016.psmfc.org\\calcom;databaseName=CALCOM', getPass::getPass('CALCOM User: '), getPass::getPass('Password: '))
 				
 				#
 				#dbWriteTable(ch, "bigNewIPTest", dat, row.names=F, overwrite=T)
@@ -688,13 +688,8 @@ exportSpp = function(exp, human=T, pacfin=T, calcom=F, doc=NULL){
 					##sum(toComLands$POUNDS[toComLands$SPECIES=='URCK'])
 				}
 				
-				##NOTE: run post expansion stored proceedure
-				##run the post expansion stored proceedure
-				##CALCOM.dbo.com_lands_post_expansion
-				#RJDBC::dbSendQuery(mCon, "EXEC com_lands_post_expansion")
-				##see the head of recent com_lands rows: confirm no species grp
-				##try running stored proceedure
-				##see same com_lands rows to confirm that the species groups were added
+				#Run Post Expansion Stored Proceedure to add SPECIES_GRP  #CALCOM.dbo.com_lands_post_expansion
+				RJDBC::dbSendUpdate(mCon, "EXEC com_lands_post_expansion")
 						
 				#exit loop when this eventually doesn't error
 				flag = F
