@@ -137,8 +137,10 @@ getCalcomLenData = function(year, save=F, fromFile=F){
 			mDrv = RJDBC::JDBC('com.microsoft.sqlserver.jdbc.SQLServerDriver', system.file("drivers/sqljdbc4.jar", package="calcomExpansions"), identifier.quote="'")
 			# CALCOM connection
 			writeLines("\nReading CALCOM Length Data From CALCOM Connection...") 
-			mCon = RJDBC::dbConnect(mDrv, 'jdbc:sqlserver://sql2016.psmfc.org\\calcom;databaseName=CALCOM', getPass::getPass('CALCOM User: '), getPass::getPass('Password: '))	
-			
+			#mCon = RJDBC::dbConnect(mDrv, 'jdbc:sqlserver://sql2016.psmfc.org\\calcom;databaseName=CALCOM', getPass::getPass('CALCOM User: '), getPass::getPass('Password: '))	
+			x = getLoginDetails("CALCOM Login", "Username", "Pass", "Enter CALCOM Username and Password Below: \n(requires PSMFC VPN)")
+			mCon = RJDBC::dbConnect(mDrv, 'jdbc:sqlserver://sql2016.psmfc.org\\calcom;databaseName=CALCOM', x['loginID'], x['password'])
+
 			#
 			tempLen1 = c()
 			tempLen2 = c()

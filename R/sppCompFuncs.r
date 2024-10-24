@@ -84,6 +84,12 @@ expDiff = function(exp1, exp2, by=NULL){
 	return(list(twoNeeds=exp2Needs, oneNeeds=exp1Needs))
 }
 
+#' A function primarily for internal use that presents a login window and collect login information.
+#'
+#' @param window A string of the window title
+#' @param login A string of the text to display in the username field
+#' @param password A string that will be shown blinded in the password field
+#' @param prompt A string that is displayed as a prompt above the username field 
 getLoginDetails <- function(window, login, password, prompt){
   ## Based on code by Barry Rowlingson
   ## http://r.789695.n4.nabble.com/tkentry-that-exits-after-RETURN-tt854721.html#none
@@ -252,7 +258,7 @@ getPacfinSppData = function(year, save=F, fromFile=F){
 				#template connection string:"jdbc:oracle:thin:@//database.hostname.com:port/service_name_or_sid"
 				#name = askpass::askpass("PacFIN User: ") #getPass::getPass('PacFIN User: ')
 				#password = askpass::askpass("Password: ") #getPass::getPass('Password: ')
-				x = getLoginDetails("PacFIN Login", "PacFIN User", "", "PacFIN Login: \n(requires NOAA VPN)")
+				x = getLoginDetails("PacFIN Login", "Username", "Pass", "Enter PacFIN Username and Password Below: \n(requires PSMFC approved network access. e.g. NOAA VPN)")
 				oCon = RJDBC::dbConnect(oDrv, 'jdbc:oracle:thin:@//pacfindb.psmfc.org:2045/pacfin.psmfc.org', x['loginID'], x['password']) #getPass::getPass('PacFIN User: '), getPass::getPass('Password: ')) 
 				
 				#
@@ -292,7 +298,8 @@ getPacfinSppData = function(year, save=F, fromFile=F){
 				#
 				print(err)
 				#NOTE: agency IP adress instead of NOAA
-				readline("\nDo you have a NOAA IP address? Join NOAA VPN.\n(Ctrl-C to Escape -or- Enter to Try Again)")
+				#readline("\nDo you have a NOAA IP address? Join NOAA VPN.\n(Ctrl-C to Escape -or- Enter to Try Again)")
+				readline("\nDo you have PSMFC approaved network access? e.g. NOAA VPN.\n(Ctrl-C to Escape -or- Enter to Try Again)")
 				writeLines('')
 				#
 				flag = T
@@ -384,8 +391,8 @@ getCalcomSppData = function(year, save=F, fromFile=F){
 				mDrv = RJDBC::JDBC('com.microsoft.sqlserver.jdbc.SQLServerDriver', system.file("drivers/sqljdbc4.jar", package="calcomExpansions"), identifier.quote="'")
 				# CALCOM connection
 				writeLines("\nReading CALCOM Species Data From CALCOM Connection...")                  #CALCOM_test
-				mCon = RJDBC::dbConnect(mDrv, 'jdbc:sqlserver://sql2016.psmfc.org\\calcom;databaseName=CALCOM', getPass::getPass('CALCOM User: '), getPass::getPass('Password: '))
-					
+				x = getLoginDetails("CALCOM Login", "Username", "Pass", "Enter CALCOM Username and Password Below: \n(requires PSMFC VPN)")
+				mCon = RJDBC::dbConnect(mDrv, 'jdbc:sqlserver://sql2016.psmfc.org\\calcom;databaseName=CALCOM', x['loginID'], x['password']) #getPass::getPass('CALCOM User: '), getPass::getPass('Password: '))
 				#get calcom tables
 				gearCodes = RJDBC::dbGetQuery(mCon,"select * from pacfin_gear_codes")
 				portCodes = RJDBC::dbGetQuery(mCon,"select * from pacfin_port_codes")
@@ -632,7 +639,9 @@ exportSpp = function(exp, human=T, pacfin=T, calcom=F, doc=NULL){
 				mDrv = RJDBC::JDBC('com.microsoft.sqlserver.jdbc.SQLServerDriver', system.file("drivers/sqljdbc4.jar", package="calcomExpansions"), identifier.quote="'")
 				# CALCOM connection
 				writeLines("\nWriting Expansion to CALCOM Connection...")                  #CALCOM_test
-				mCon = RJDBC::dbConnect(mDrv, 'jdbc:sqlserver://sql2016.psmfc.org\\calcom;databaseName=CALCOM_test', getPass::getPass('CALCOM User: '), getPass::getPass('Password: '))
+				x = getLoginDetails("CALCOM Login", "Username", "Pass", "Enter CALCOM Username and Password Below: \n(requires PSMFC VPN)")
+				mCon = RJDBC::dbConnect(mDrv, 'jdbc:sqlserver://sql2016.psmfc.org\\calcom;databaseName=CALCOM', x['loginID'], x['password']) #getPass::getPass('CALCOM User: '), getPass::getPass('Password: '))
+				#mCon = RJDBC::dbConnect(mDrv, 'jdbc:sqlserver://sql2016.psmfc.org\\calcom;databaseName=CALCOM', getPass::getPass('CALCOM User: '), getPass::getPass('Password: '))
 				
 				#
 				#dbWriteTable(ch, "bigNewIPTest", dat, row.names=F, overwrite=T)
@@ -688,13 +697,8 @@ exportSpp = function(exp, human=T, pacfin=T, calcom=F, doc=NULL){
 					##sum(toComLands$POUNDS[toComLands$SPECIES=='URCK'])
 				}
 				
-				##NOTE: run post expansion stored proceedure
-				##run the post expansion stored proceedure
-				##CALCOM.dbo.com_lands_post_expansion
-				#RJDBC::dbSendQuery(mCon, "EXEC com_lands_post_expansion")
-				##see the head of recent com_lands rows: confirm no species grp
-				##try running stored proceedure
-				##see same com_lands rows to confirm that the species groups were added
+				#Run Post Expansion Stored Proceedure to add SPECIES_GRP  #CALCOM.dbo.com_lands_post_expansion
+				RJDBC::dbSendUpdate(mCon, "EXEC com_lands_post_expansion")
 						
 				#exit loop when this eventually doesn't error
 				flag = F

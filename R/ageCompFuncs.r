@@ -192,10 +192,7 @@ getCalcomAgeData = function(year, save=F, fromFile=F){
 			# Create microsoft sql connection driver and open connection to CALCOM
 			# CALCOM is an MS-SQL server on the PSMFC VPN
 			# sqljdbc4.jar file is required for creating the microsoft sql driver
-			
-			#
-			writeLines("\nReading CALCOM Age Data From CALCOM Connection...")
-			
+				
 			##the lazy version
 			#mDrv = RJDBC::JDBC('com.microsoft.sqlserver.jdbc.SQLServerDriver', './sqljdbc4.jar', identifier.quote="'")
 			## CALCOM connection
@@ -203,8 +200,11 @@ getCalcomAgeData = function(year, save=F, fromFile=F){
 			#NOTE: swap out passwords for getPass call
 			#NOTE: swap out dirver for 
 			mDrv = RJDBC::JDBC('com.microsoft.sqlserver.jdbc.SQLServerDriver', system.file("drivers/sqljdbc4.jar", package="calcomExpansions"), identifier.quote="'")
-        		# CALCOM connection	
-        		mCon = RJDBC::dbConnect(mDrv, 'jdbc:sqlserver://sql2016.psmfc.org\\calcom;databaseName=CALCOM', getPass::getPass('CALCOM User: '), getPass::getPass('Password: ')) 	
+        		writeLines("\nReading CALCOM Age Data From CALCOM Connection...")
+			# CALCOM connection
+			x = getLoginDetails("CALCOM Login", "Username", "Pass", "Enter CALCOM Username and Password Below: \n(requires PSMFC VPN)")
+			mCon = RJDBC::dbConnect(mDrv, 'jdbc:sqlserver://sql2016.psmfc.org\\calcom;databaseName=CALCOM', x['loginID'], x['password'])		
+			#mCon = RJDBC::dbConnect(mDrv, 'jdbc:sqlserver://sql2016.psmfc.org\\calcom;databaseName=CALCOM', getPass::getPass('CALCOM User: '), getPass::getPass('Password: ')) 	
 			
 			#
         		tempAge1 = c()
