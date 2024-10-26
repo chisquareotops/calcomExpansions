@@ -503,6 +503,7 @@ exportSpp = function(exp, human=T, pacfin=T, calcom=F, doc=NULL){
 	#
 	#value  :
 
+	#NOTE: add checking to make sure that the expansion is indeed a spp expansion and not an age or length expansion
 
 	##vu filtering
 	#exp = exp[exp$source!='N',] 
@@ -616,7 +617,7 @@ exportSpp = function(exp, human=T, pacfin=T, calcom=F, doc=NULL){
 		#
 		for(y in years){
 			#
-			write.csv(exp[exp$year==y,c('year','qtr','disp','mcat','gear','port','source','spp','lands','comp')], file=sprintf('hfeed%2d.csv', y%%100), quote=F, row.names=F)
+			write.csv(exp[exp$year==y,c('year','qtr','disp','mcat','gear','port','source','spp','lands','comp')], file=sprintf('hfeedSpp%2d.csv', y%%100), quote=F, row.names=F)
 		}
 	}
 	
