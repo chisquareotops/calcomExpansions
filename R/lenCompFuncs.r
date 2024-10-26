@@ -257,6 +257,154 @@ getCalcomLenData = function(year, save=F, fromFile=F){
 	return( out )
 }
 
+#' A function to perform the various exporting tasks needed after a species expansion
+#' 
+#' @param exp   An expansion object created by estLenComp or estLenCompDoc to 
+#'      be exported.
+#' @param human A boolean indicating if the human feed should be written to 
+#'      file (i.e. hfeedYY.csv).
+#' @param calcom A boolean indicating if the the calcom database should be 
+#'      backed up and updated with the given species expansion.
+#' @param doc   If calcom=True, a vector of doc filenames to be exported to 
+#'      calcom.
+#'
+#' @return NULL See current directory and/or database.
+exportLen = function(exp, human=T, calcom=F, doc=NULL){ #, pacfin=T
+        #exp    :
+        #human  :
+        #calcom :
+        #doc    :
+        #
+        #value  :
+	
+        ##
+        #sourceMatrix = c(A="ACTUAL", B="ACTUAL", C="BORROW T-1", D="BORROW T-2", N="NOMINAL", E="BORROW T-∞", F="BORROW T-∞", G="BORROW T-∞", H="BORROW T-∞", I="BORROW T-∞", J="BORROW T-∞", K="BORROW T-∞", L="BORROW T-∞", M="BORROW T-∞")
+
+	#checking that exp is indeed a length expansion and not spp or age expansion
+	stopifnot( all(names(lenEst)==c('species', 'year', 'port', 'gear', 'disp', 'mcat', 'sex', 'flength', 'binHeight', 'source')) )
+		
+        #       
+        years = sort(unique(exp$year))
+        disps = sort(unique(exp$disp))
+        #qtrs  = sort(unique(exp$qtr))
+        ports = unique(exp$port)
+        gears = sort(unique(exp$gear))
+        mcats = sort(unique(exp$mcat))
+	#flength
+	#sex
+	#binHeight
+
+	#rounded to hundreths because its the fewest digits so that the sums converges to the correct answer
+	exp$binHeight = round(lenEst$binHeight, 2)
+	
+        #
+        if( human ){
+                #
+                for(y in years){
+                        #
+                        write.csv(exp[exp$year==y,c('species', 'year', 'port', 'gear', 'disp', 'mcat', 'sex', 'flength', 'binHeight', 'source')], file=sprintf('hfeedLen%2d.csv', y%%100), quote=F, row.names=F)
+                }
+        }
+	
+	#
+	#propogate calcom SQL tables: 
+        if( calcom ){
+        	#
+                if( length(doc)!=length(years) ){
+                        stop(sprintf("\n\tdoc filename must be specified for each year expanded when calcom==T"))
+                }
+                #
+                flag = T
+                while( flag ){
+                        #
+                        flag = tryCatch({
+                                # Create microsoft sql connection driver and open connection to CALCOM
+                                # CALCOM is an MS-SQL server on the PSMFC VPN
+                                # sqljdbc4.jar file is required for creating the microsoft sql driver
+                                #mDrv = RJDBC::JDBC('com.microsoft.sqlserver.jdbc.SQLServerDriver', './sqljdbc4.jar', identifier.quote="'")
+                                #mDrv = RJDBC::JDBC('com.microsoft.sqlserver.jdbc.SQLServerDriver', file.path(dPath, "drivers", "sqljdbc4.jar"), identifier.quote="'")
+                                mDrv = RJDBC::JDBC('com.microsoft.sqlserver.jdbc.SQLServerDriver', system.file("drivers/sqljdbc4.jar", package="calcomExpansions"), identifier.quote="'")
+                                # CALCOM connection
+                                writeLines("\nWriting Expansion to CALCOM Connection...")                  #CALCOM_test
+                                x = getLoginDetails("CALCOM Login", "Username", "Pass", "Enter CALCOM Username and Password Below: \n(requires PSMFC VPN)")
+                                mCon = RJDBC::dbConnect(mDrv, 'jdbc:sqlserver://sql2016.psmfc.org\\calcom;databaseName=CALCOM_test', x['loginID'], x['password']) 
+                                #mCon = RJDBC::dbConnect(mDrv, 'jdbc:sqlserver://sql2016.psmfc.org\\calcom;databaseName=CALCOM', getPass::getPass('CALCOM User: '), getPass::getPass('Password: '))
+				
+                                #
+                                #dbWriteTable(ch, "bigNewIPTest", dat, row.names=F, overwrite=T)
+                                #dbWriteTable(ch, "bigNewIPTest", dat, row.names=F, overwrite=F, append=T)
+                                #
+                                #backup year(s) into one dedicated temp_file
+                                        #one backup a day, only do a backup if one does not already exist. 
+                                        #separate functionality to force a backup
+                                        #dbSendQuery 
+                                        #xxx_COM_LANDS_BAK_YYYYMMDD
+                                        #select * into xxx_COM_LANDS_BAK_YYYYMMDD from com_lands 
+                                        #xxx_COMP_EXPAND_DOCS_BAK_YYYYMMDD
+                                #delete previous data
+                                        #delete only given years?       
+                                #write new year(s) data 
+                                        #dbWriteTable( , row.names=F, append=T, overwrite=F)
+                                        #close(mCon)
+
+                                #before we do anything with the database backup!
+                                backup(mCon, 'COM_LEN_COMPS')
+                                backup(mCon, 'LEN_EXPAND_DOCS')
+
+                                #read in docs here to separate it from potentially interfering with writting to the database.
+                                docs = list()
+                                for(i in 1:length(years)){
+                                        #
+					yeari = as.character(years[i])
+					#all of the expanded in the new doc format excluding the commented unexpanded rows
+                                        docs[[yeari]] = read.csv(doc[i], comment.char="#")
+					docs[[yeari]]$borrow = c("Y", "N")[ (docs[[yeari]]$gearAct==docs[[yeari]]$gearUse & docs[[yeari]]$portAct==docs[[yeari]]$portUse) + 1 ] 
+					docs[[yeari]]$expanded = "Y"
+					docs[[yeari]] = docs[[yeari]][,c('yearAct', 'sppAct', 'dispAct', 'gearAct', 'portAct', 'mcatAct', 'borrow', 'gearUse', 'portUse', 'expanded', 'ctUse', 'expLands')]
+					#now read-in, clean-up and and add the commented out unexpanded rows 
+					##colnames(extras) = c('comment', 'yearAct', 'sppAct', 'dispAct', 'mcatAct', 'gearAct', 'portAct', 'yearUse', 'sppUse', 'dispUse', 'mcatUse', 'gearUse', 'portUse', 'ctUse','expLands')
+                                	extras = suppressWarnings( read.csv(doc[i], row.names=NULL, col.names=c('comment', 'yearAct', 'sppAct', 'dispAct', 'mcatAct', 'gearAct', 'portAct', 'yearUse', 'sppUse', 'dispUse', 'mcatUse', 'gearUse', 'portUse', 'ctUse','expLands')) ) #skip=nrow(docs[[yeari]]) 	
+					extras = extras[extras$comment=="#",]
+					extras$borrow = "N"
+					extras$expanded = "N"
+					extras = extras[,c('yearAct', 'sppAct', 'dispAct', 'gearAct', 'portAct', 'mcatAct', 'borrow', 'gearUse', 'portUse', 'expanded', 'ctUse', 'expLands')]	
+					#mesh together and put into the format of the database
+					docs[[yeari]] = rbind(docs[[yeari]], extras)
+					colnames(docs[[yeari]]) = c('year', 'species', 'live_fish', 'gear_grp', 'port_complex', 'mark_cat', 'borrow', 'borrow_gear', 'borrow_port', 'expanded', 'fish_ct', 'pounds')
+                                }
+				
+				#update SQL
+                                for(y in years){
+                                        #
+                                        toCom = exp[exp$year==y,] 
+                                        colnames(toCom) = c("species", "year", "port_complex", "gear_grp", "live", "mark_cat", "sex", "flength", "total", "source")
+
+                                        #COM_LEN_COMPS
+                                        RJDBC::dbSendUpdate(mCon, sprintf("DELETE from COM_LEN_COMPS where year=%s", y) )
+                                        RJDBC::dbWriteTable(mCon, "COM_LEN_COMPS", toCom, row.names=F, append=T, overwrite=F)
+
+                                        #LEN_EXPAND_DOCS
+                                        RJDBC::dbSendUpdate(mCon, sprintf("DELETE from LEN_EXPAND_DOCS where year=%s", y) )
+                                        RJDBC::dbWriteTable(mCon, "LEN_EXPAND_DOCS", docs[[as.character(y)]], row.names=F, append=T, overwrite=F)
+                                }
+				
+                                #exit loop when this eventually doesn't error
+                                flag = F
+        		}, error=function(err){
+                                #
+                                print(err)
+                                readline("\nPSMFC IP address? SQL permissions? Wrong password?\n(Ctrl-C to Escape -or- Enter to Try Again)")
+                                writeLines('')
+                                #
+                                flag = T
+                        })
+		}
+	}
+	
+	#NOTE: maybe return some sort of diagnostic information?
+        return(NULL)	
+}
+
 #
 #EXPANSION FUNCTIONS
 #
@@ -432,7 +580,10 @@ estLenComp = function(calcomLenData, portBorr=portMatrix1, files=T){
 		lendoc$borrowed[numSource>1 & numSource<9] = "Y"
 		lendoc[lendoc$borrowed!="Y", c("borrGear", "borrPort")] = ""
 		lendocDon = lendoc
+		lendocDon = lendocDon[,c('year', 'species', 'live', 'mcat', 'gear', 'port', 'year', 'species', 'live', 'mcat', 'borrGear', 'borrPort', 'sppStratSamCt', 'expLands', 'expanded')]
 		#NOTE: in sppComp we only include expanded strata, but we include all expanded strata sources (below I do that)
+		#NOTE: thus add weight back in and add a partition at the bottom (end matter) with all of the extra non expanded stuff below
+		#NOTE: figure out how to read in this new file format in the doc version of the function (toss the end matter)
 		lendoc = lendoc[lendoc$expanded=="Y",]
 		isBorr = lendoc$borrowed=="Y"
 		#copy over stuff where no borrowing can happen
@@ -455,16 +606,27 @@ estLenComp = function(calcomLenData, portBorr=portMatrix1, files=T){
         	       ,'sppStratSamCt'])
 		}	
 		#remove the unneccessary columns, reorder, and then rename
-		lendoc = lendoc[,c('year', 'species', 'live', 'mcat', 'gear', 'port', 'yearUse', 'sppUse', 'dispUse', 'mcatUse', 'borrGear', 'borrPort', 'sppStratSamCt')]
-		colnames(lendoc) = c('yearAct', 'sppAct', 'dispAct', 'mcatAct', 'gearAct', 'portAct', 'yearUse', 'sppUse', 'dispUse', 'mcatUse', 'gearUse', 'portUse', 'ctUse')
-
+		lendoc = lendoc[,c('year', 'species', 'live', 'mcat', 'gear', 'port', 'yearUse', 'sppUse', 'dispUse', 'mcatUse', 'borrGear', 'borrPort', 'sppStratSamCt', 'expLands')]
+		colnames(lendoc) = c('yearAct', 'sppAct', 'dispAct', 'mcatAct', 'gearAct', 'portAct', 'yearUse', 'sppUse', 'dispUse', 'mcatUse', 'gearUse', 'portUse', 'ctUse', 'expLands')
+		
 		#
         	if( files ){
 			write.csv(lendoc, sprintf("lendoc%s.csv", year), row.names=F, quote=F)
+			#NOTE: either overload my lendoc here, or write two lendocs (add the lendocDon).
+			write.table(lendocDon[lendocDon$expanded=="N",c('year', 'species', 'live', 'mcat', 'gear', 'port', 'year', 'species', 'live', 'mcat', 'borrGear', 'borrPort', 'sppStratSamCt', 'expLands')], 
+					file	= sprintf("lendoc%s.csv", year),
+					append	= T,
+					sep	= ',',
+					quote	= F,
+					col.names=F,
+					row.names=rep("#", sum(lendocDon$expanded=="N"))
+			)
 		}
 		
 		#PREP FOR EXPAND
 		
+		#
+		borrLab = c(A="ACTUAL", B="BORROW")
 		#species and stratum level; a working object
 		samp = lenuse[lenuse$alsSource!='I',] #implements the ignores     
 		colnames(samp) = c('actSpecies', 'actLive', 'actGear', 'actPort', 'actMcat',  'source', 'expLands', 'sppStratSamCt', 'species', 'live', 'gear', 'port', 'mcat', 'alsSource')
@@ -481,7 +643,7 @@ estLenComp = function(calcomLenData, portBorr=portMatrix1, files=T){
 		#EXPAND
 		
 		#iterate over expanded sppStrata
-		lencom = data.frame(species=character(0), disp=character(0), gear=character(0), port=character(0), mcat=numeric(0), flength=numeric(0), sex=numeric(0), ex=numeric(0))
+		lencom = data.frame(species=character(0), disp=character(0), gear=character(0), port=character(0), mcat=numeric(0), flength=numeric(0), sex=numeric(0), ex=numeric(0), source=numeric(0))
 		for(i in (1:nrow(samp))){
 		        #samp[i,'expNums'] will be zero in strata that require borrows, should use the the borrowed expNum
 		        sampB = samp[
@@ -524,9 +686,12 @@ estLenComp = function(calcomLenData, portBorr=portMatrix1, files=T){
 		        histLS = z/sum(z) * sampB$expNums 
 		        histX = matrix(grid[,1], ncol=3)
 		        histY = matrix(grid[,2], ncol=3)
-		
-		        #
-		        out = cbind(species=samp[i,'actSpecies'], year=year, disp=samp[i,'actLive'], gear=samp[i,'actGear'], port=samp[i,'actPort'], mcat=samp[i,'actMcat'], flength=histX[!is.na(histLS)], sex=histY[!is.na(histLS)], ex=histLS[!is.na(histLS)])
+			
+		        #samp[i,'expNums'] will be zero in strata that require borrows #is this and if or and iff? looks like iff
+			#sampBorrow = borrLab[(samp[i,'expNums']==0)+1]
+			sampBorrow = borrLab[samp[i, 'alsSource']]
+			#
+		        out = cbind(species=samp[i,'actSpecies'], year=year, disp=samp[i,'actLive'], gear=samp[i,'actGear'], port=samp[i,'actPort'], mcat=samp[i,'actMcat'], flength=histX[!is.na(histLS)], sex=histY[!is.na(histLS)], ex=histLS[!is.na(histLS)], source=sampBorrow)
 		        lencom = rbind(lencom, out)
 		}
 		lencom$flength = as.numeric(lencom$flength)
@@ -534,9 +699,11 @@ estLenComp = function(calcomLenData, portBorr=portMatrix1, files=T){
 		lencom$x = as.numeric(lencom$ex)
 		lencom = subset(lencom, select = c(-ex))
 		lencom$sex[lencom$sex==3] = 9
-		colnames(lencom) = c("species", "year", "disp", "gear", "port", "mcat", "flength", "sex", "binHeight")
-		#reorder?
-		#lencom = lencom[,c('year','disp','mcat','gear','port','source','spp','lands','comp')]
+		colnames(lencom) = c("species", "year", "disp", "gear", "port", "mcat", "flength", "sex", "source", "binHeight")
+		#reorder & final clean-up
+		lencom = lencom[,c("species", "year", "port", "gear", "disp", "mcat", "sex", "flength", "binHeight", "source")]
+		lencom$year = as.numeric(lencom$year)
+		#
 		expOut = rbind(expOut, lencom)
 	}
 	
@@ -592,7 +759,7 @@ estLenCompDoc = function(calcomLenData, doc=sprintf("lendoc%s.csv", unique(calco
         lenDocs = list()
         for(i in 1:length(fishYear)){
                 #
-                lenDocY = read.csv(doc[i])
+                lenDocY = read.csv(doc[i], comment.char="#")
                 lenDocYear = unique(lenDocY$yearAct)
 		#
                 stopifnot( length(lenDocYear)==1 ) #the yealy exdoc files should only contain strata from a single year
@@ -658,7 +825,7 @@ estLenCompDoc = function(calcomLenData, doc=sprintf("lendoc%s.csv", unique(calco
 		samphead$avgW = samphead$alsLbs/samphead$totCt
 		#average numbers
 		samphead$avgN = samphead$totLbs/samphead$avgW
-
+		
 		#LENUSE/LENDOC CODE
 		
 		#
@@ -718,6 +885,8 @@ estLenCompDoc = function(calcomLenData, doc=sprintf("lendoc%s.csv", unique(calco
 
 		#PREP FOR EXPAND
 		
+		#
+		borrLab = c(A="ACTUAL", B="BORROW")
 		#species and stratum level; a working object
 		samp = lenuse[lenuse$alsSource!='I',] #implements the ignores     
 		colnames(samp) = c('actSpecies', 'actLive', 'actGear', 'actPort', 'actMcat',  'source', 'expLands', 'sppStratSamCt', 'species', 'live', 'gear', 'port', 'mcat', 'alsSource')
@@ -777,19 +946,24 @@ estLenCompDoc = function(calcomLenData, doc=sprintf("lendoc%s.csv", unique(calco
 		        histLS = z/sum(z) * sampB$expNums 
 		        histX = matrix(grid[,1], ncol=3)
 		        histY = matrix(grid[,2], ncol=3)
-		
-		        #
-		        out = cbind(species=samp[i,'actSpecies'], year=year, disp=samp[i,'actLive'], gear=samp[i,'actGear'], port=samp[i,'actPort'], mcat=samp[i,'actMcat'], flength=histX[!is.na(histLS)], sex=histY[!is.na(histLS)], ex=histLS[!is.na(histLS)])
-		        lencom = rbind(lencom, out)
+			
+			#samp[i,'expNums'] will be zero in strata that require borrows #is this and if or and iff? looks like iff
+			#sampBorrow = borrLab[(samp[i,'expNums']==0)+1]
+			sampBorrow = borrLab[samp[i, 'alsSource']]
+			#
+		        out = cbind(species=samp[i,'actSpecies'], year=year, disp=samp[i,'actLive'], gear=samp[i,'actGear'], port=samp[i,'actPort'], mcat=samp[i,'actMcat'], flength=histX[!is.na(histLS)], sex=histY[!is.na(histLS)], ex=histLS[!is.na(histLS)], source=sampBorrow)
+		        lencom = rbind(lencom, out) 
 		}
 		lencom$flength = as.numeric(lencom$flength)
 		lencom$mcat = as.numeric(lencom$mcat)
 		lencom$x = as.numeric(lencom$ex)
 		lencom = subset(lencom, select = c(-ex))
 		lencom$sex[lencom$sex==3] = 9
-		colnames(lencom) = c("species", "year", "disp", "gear", "port", "mcat", "flength", "sex", "binHeight")
-		#reorder?
-		#lencom = lencom[,c('year','disp','mcat','gear','port','source','spp','lands','comp')]
+		colnames(lencom) = c("species", "year", "disp", "gear", "port", "mcat", "flength", "sex", "source", "binHeight")
+		#reorder & final clean-up
+		lencom = lencom[,c("species", "year", "port", "gear", "disp", "mcat", "sex", "flength", "binHeight", "source")]
+		lencom$year = as.numeric(lencom$year)
+		#
 		expOut = rbind(expOut, lencom)
 	}
 	
