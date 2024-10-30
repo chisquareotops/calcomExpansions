@@ -2,7 +2,8 @@
 % Please edit documentation in R/lenCompFuncs.r
 \name{exportLen}
 \alias{exportLen}
-\title{A function to perform the various exporting tasks needed after a species expansion}
+
+\title{A function to perform the various exporting tasks needed after a length expansion}
 \usage{
 exportLen(exp, human = T, calcom = F, doc = NULL)
 }
@@ -23,5 +24,5 @@ calcom.}
 NULL See current directory and/or database.
 }
 \description{
-A function to perform the various exporting tasks needed after a species expansion
+A function to perform the various exporting tasks needed after a length expansion
 }
