@@ -290,14 +290,14 @@ exportLen = function(exp, human=T, calcom=F, doc=NULL){ #, pacfin=T
         #ports = unique(exp$port)
         #gears = sort(unique(exp$gear))
         #mcats = sort(unique(exp$mcat))
-	##flength
-	##sex
-	##binHeight
+	      ##flength
+	      ##sex
+	      ##binHeight
 
-	#rounded to hundreths because its the fewest digits so that the sums converges to the correct answer
-	#rounding is automagically done by sql. thus let it round no need to double round, but this is where I did it that one time.
-	#if we want to loosen rounding it should ideally be done in the data type defined in the sql collumn
-	#exp$binHeight = round(exp$binHeight, 2)
+	      #rounded to hundreths because its the fewest digits so that the sums converges to the correct answer
+	      #rounding is automagically done by sql. thus let it round no need to double round, but this is where I did it that one time.
+	      #if we want to loosen rounding it should ideally be done in the data type defined in the sql collumn
+	      #exp$binHeight = round(exp$binHeight, 2)
 	
         #
         if( human ){
@@ -308,8 +308,8 @@ exportLen = function(exp, human=T, calcom=F, doc=NULL){ #, pacfin=T
                 }
         }
 	
-	#
-	#propogate calcom SQL tables: 
+	    #
+	    #propogate calcom SQL tables: 
         if( calcom ){
         	#
                 if( length(doc)!=length(years) ){
@@ -690,10 +690,10 @@ estLenComp = function(calcomLenData, portBorr=portMatrix1, files=T){
 		        histY = matrix(grid[,2], ncol=3)
 			
 		        #samp[i,'expNums'] will be zero in strata that require borrows #is this and if or and iff? looks like iff
-			#sampBorrow = borrLab[(samp[i,'expNums']==0)+1]
-			sampBorrow = borrLab[samp[i, 'alsSource']]
-			#
-			trimZeros = histLS!=0
+			      #sampBorrow = borrLab[(samp[i,'expNums']==0)+1]
+			      sampBorrow = borrLab[samp[i, 'alsSource']]
+			      #
+			      trimZeros = histLS!=0
 		        out = cbind(species=samp[i,'actSpecies'], year=year, disp=samp[i,'actLive'], gear=samp[i,'actGear'], port=samp[i,'actPort'], mcat=samp[i,'actMcat'], flength=histX[!is.na(histLS) & trimZeros], sex=histY[!is.na(histLS) & trimZeros], ex=histLS[!is.na(histLS) & trimZeros], source=sampBorrow)
 		        lencom = rbind(lencom, out)
 		}
@@ -950,11 +950,11 @@ estLenCompDoc = function(calcomLenData, doc=sprintf("lendoc%s.csv", unique(calco
 		        histX = matrix(grid[,1], ncol=3)
 		        histY = matrix(grid[,2], ncol=3)
 			
-			#samp[i,'expNums'] will be zero in strata that require borrows #is this and if or and iff? looks like iff
-			#sampBorrow = borrLab[(samp[i,'expNums']==0)+1]
-			sampBorrow = borrLab[samp[i, 'alsSource']]
-			#
-			trimZeros = histLS!=0
+			      #samp[i,'expNums'] will be zero in strata that require borrows #is this and if or and iff? looks like iff
+			      #sampBorrow = borrLab[(samp[i,'expNums']==0)+1]
+			      sampBorrow = borrLab[samp[i, 'alsSource']]
+			      #
+			      trimZeros = histLS!=0
 		        out = cbind(species=samp[i,'actSpecies'], year=year, disp=samp[i,'actLive'], gear=samp[i,'actGear'], port=samp[i,'actPort'], mcat=samp[i,'actMcat'], flength=histX[!is.na(histLS) & trimZeros], sex=histY[!is.na(histLS) & trimZeros], ex=histLS[!is.na(histLS) & trimZeros], source=sampBorrow)
 		        lencom = rbind(lencom, out) 
 		}

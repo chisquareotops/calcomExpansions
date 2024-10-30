@@ -503,6 +503,7 @@ exportSpp = function(exp, human=T, pacfin=T, calcom=F, doc=NULL){
 	#
 	#value  :
 
+
 	#checking to make sure that the expansion is indeed a spp expansion and not an age or length expansion
 	stopifnot(  all(names(exp)==c('year','qtr','disp','mcat','gear','port','lands', 'source','spp','comp')) )
 
