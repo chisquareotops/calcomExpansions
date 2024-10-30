@@ -75,6 +75,8 @@ A typical use will look like:
     R> pacfinSpp = getPacfinSppData(year)
 
     Reading PacFIN Species Data From PacFIN Connection...
+    Enter PacFIN Username and Password Below:
+    (requires PSMFC approved network access. e.g. NOAA VPN)
     PacFIN User: ********
     Password: ************
 
@@ -92,6 +94,8 @@ A typical use will look like:
     R> calcomSpp = getCalcomSppData(year)
 
     Reading CALCOM Species Data From CALCOM Connection...
+    Enter CALCOM Username and Password Below:
+    (requires PSMFC VPN)
     CALCOM User: ********
     Password: ****************
 
@@ -136,12 +140,16 @@ default species expansion in R.
     R> pacfinSpp = getPacfinSppData(year)
 
     Reading PacFIN Species Data From PacFIN Connection...
+    Enter PacFIN Username and Password Below:
+    (requires PSMFC approved network access. e.g. NOAA VPN)
     PacFIN User: ********
     Password: ************
 
     R> calcomSpp = getCalcomSppData(year)
 
     Reading CALCOM Species Data From CALCOM Connection...
+    Enter CALCOM Username and Password Below:
+    (requires PSMFC VPN)
     CALCOM User: ********
     Password: ****************
 
@@ -166,6 +174,8 @@ prepared data from file.
     R> calcomLen = getCalcomLenData(year)
 
     Reading CALCOM Length Data From CALCOM Connection...
+    Enter CALCOM Username and Password Below:
+    (requires PSMFC VPN)
     CALCOM User: ********
     Password: ****************
 
@@ -192,6 +202,20 @@ details about editing particular borrows via the expansion documentation
 files see the R help page for the `estLenCompDoc` function
 (i.e. `?estLenCompDoc` in an R shell).
 
+Once the length expansion is complete the results may be exported in
+several different formats by the
+`exportLen(exp, human = T, calcom = F, doc = NULL)` function. See the R
+help page for details about the various export formats available
+(i.e. `?exportLen` in an R shell).
+
+    R> exportLen(lenExp, calcom=T, doc='lendoc2019.csv')
+
+    Writing Expansion to CALCOM Connection...
+    Enter CALCOM Username and Password Below:
+    (requires PSMFC VPN and elevated privileges)
+    CALCOM User: **********
+    Password: **********
+
 Stripping out the commentary from the above length expansion example
 results in a default length expansion in R.
 
@@ -199,10 +223,19 @@ results in a default length expansion in R.
     R> calcomLen = getCalcomLenData(year)
 
     Reading CALCOM Length Data From CALCOM Connection...
+    Enter CALCOM Username and Password Below:
+    (requires PSMFC VPN)
     CALCOM User: ********
     Password: ****************
 
     R> lenExp = estLenComp(calcomLen)
+    R> exportLen(lenExp, calcom=T, doc='lendoc2019.csv')
+
+    Writing Expansion to CALCOM Connection...
+    Enter CALCOM Username and Password Below:
+    (requires PSMFC VPN and elevated privileges)
+    CALCOM User: **********
+    Password: **********
 
 ### Age Expansion Coming Soon…
 
