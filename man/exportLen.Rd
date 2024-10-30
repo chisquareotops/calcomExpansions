@@ -2,6 +2,7 @@
 % Please edit documentation in R/lenCompFuncs.r
 \name{exportLen}
 \alias{exportLen}
+
 \title{A function to perform the various exporting tasks needed after a length expansion}
 \usage{
 exportLen(exp, human = T, calcom = F, doc = NULL)
