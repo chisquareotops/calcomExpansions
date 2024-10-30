@@ -88,6 +88,8 @@ R> year = 2019
 R> pacfinSpp = getPacfinSppData(year)
 
 Reading PacFIN Species Data From PacFIN Connection...
+Enter PacFIN Username and Password Below:
+(requires PSMFC approved network access. e.g. NOAA VPN)
 PacFIN User: ********
 Password: ************
 ```
@@ -105,6 +107,8 @@ A typical use will look like:
 R> calcomSpp = getCalcomSppData(year)
 
 Reading CALCOM Species Data From CALCOM Connection...
+Enter CALCOM Username and Password Below:
+(requires PSMFC VPN)
 CALCOM User: ********
 Password: ****************
 ```
@@ -148,12 +152,16 @@ R> year = 2019	#Vectorized in year. year=2018:2023 would also work.
 R> pacfinSpp = getPacfinSppData(year)
 
 Reading PacFIN Species Data From PacFIN Connection...
+Enter PacFIN Username and Password Below:
+(requires PSMFC approved network access. e.g. NOAA VPN)
 PacFIN User: ********
 Password: ************
 
 R> calcomSpp = getCalcomSppData(year)
 
 Reading CALCOM Species Data From CALCOM Connection...
+Enter CALCOM Username and Password Below:
+(requires PSMFC VPN)
 CALCOM User: ********
 Password: ****************
 
@@ -179,6 +187,8 @@ R> year = 2019
 R> calcomLen = getCalcomLenData(year)
 
 Reading CALCOM Length Data From CALCOM Connection...
+Enter CALCOM Username and Password Below:
+(requires PSMFC VPN)
 CALCOM User: ********
 Password: ****************
 ```
@@ -214,10 +224,26 @@ R> year = 2019	#Vectorized in year. year=2018:2023 would also work.
 R> calcomLen = getCalcomLenData(year)
 
 Reading CALCOM Length Data From CALCOM Connection...
+Enter CALCOM Username and Password Below:
+(requires PSMFC VPN)
 CALCOM User: ********
 Password: ****************
 
 R> lenExp = estLenComp(calcomLen)
+```
+
+Once the length expansion is complete the results may be exported in several different
+formats by the `exportLen(exp, human = T, calcom = F, doc = NULL)` function.
+See the R help page for details about the various export formats available
+(i.e. `?exportLen` in an R shell).
+```
+R> exportLen(lenExp, calcom=T, doc='lendoc2019.csv')
+
+Writing Expansion to CALCOM Connection...
+Enter CALCOM Username and Password Below:
+(requires PSMFC VPN and elevated privileges)
+CALCOM User: **********
+Password: **********
 ```
 
 ### Age Expansion Coming Soon...

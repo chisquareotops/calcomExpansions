@@ -257,7 +257,7 @@ getCalcomLenData = function(year, save=F, fromFile=F){
 	return( out )
 }
 
-#' A function to perform the various exporting tasks needed after a species expansion
+#' A function to perform the various exporting tasks needed after a length expansion
 #' 
 #' @param exp   An expansion object created by estLenComp or estLenCompDoc to 
 #'      be exported.
@@ -281,21 +281,23 @@ exportLen = function(exp, human=T, calcom=F, doc=NULL){ #, pacfin=T
         #sourceMatrix = c(A="ACTUAL", B="ACTUAL", C="BORROW T-1", D="BORROW T-2", N="NOMINAL", E="BORROW T-∞", F="BORROW T-∞", G="BORROW T-∞", H="BORROW T-∞", I="BORROW T-∞", J="BORROW T-∞", K="BORROW T-∞", L="BORROW T-∞", M="BORROW T-∞")
 
 	#checking that exp is indeed a length expansion and not spp or age expansion
-	stopifnot( all(names(lenEst)==c('species', 'year', 'port', 'gear', 'disp', 'mcat', 'sex', 'flength', 'binHeight', 'source')) )
+	stopifnot( all(names(exp)==c('species', 'year', 'port', 'gear', 'disp', 'mcat', 'sex', 'flength', 'binHeight', 'source')) )
 		
         #       
         years = sort(unique(exp$year))
-        disps = sort(unique(exp$disp))
-        #qtrs  = sort(unique(exp$qtr))
-        ports = unique(exp$port)
-        gears = sort(unique(exp$gear))
-        mcats = sort(unique(exp$mcat))
-	#flength
-	#sex
-	#binHeight
+        #disps = sort(unique(exp$disp))
+        ##qtrs  = sort(unique(exp$qtr))
+        #ports = unique(exp$port)
+        #gears = sort(unique(exp$gear))
+        #mcats = sort(unique(exp$mcat))
+	##flength
+	##sex
+	##binHeight
 
 	#rounded to hundreths because its the fewest digits so that the sums converges to the correct answer
-	exp$binHeight = round(lenEst$binHeight, 2)
+	#rounding is automagically done by sql. thus let it round no need to double round, but this is where I did it that one time.
+	#if we want to loosen rounding it should ideally be done in the data type defined in the sql collumn
+	#exp$binHeight = round(exp$binHeight, 2)
 	
         #
         if( human ){
@@ -691,7 +693,8 @@ estLenComp = function(calcomLenData, portBorr=portMatrix1, files=T){
 			#sampBorrow = borrLab[(samp[i,'expNums']==0)+1]
 			sampBorrow = borrLab[samp[i, 'alsSource']]
 			#
-		        out = cbind(species=samp[i,'actSpecies'], year=year, disp=samp[i,'actLive'], gear=samp[i,'actGear'], port=samp[i,'actPort'], mcat=samp[i,'actMcat'], flength=histX[!is.na(histLS)], sex=histY[!is.na(histLS)], ex=histLS[!is.na(histLS)], source=sampBorrow)
+			trimZeros = histLS!=0
+		        out = cbind(species=samp[i,'actSpecies'], year=year, disp=samp[i,'actLive'], gear=samp[i,'actGear'], port=samp[i,'actPort'], mcat=samp[i,'actMcat'], flength=histX[!is.na(histLS) & trimZeros], sex=histY[!is.na(histLS) & trimZeros], ex=histLS[!is.na(histLS) & trimZeros], source=sampBorrow)
 		        lencom = rbind(lencom, out)
 		}
 		lencom$flength = as.numeric(lencom$flength)
@@ -706,7 +709,7 @@ estLenComp = function(calcomLenData, portBorr=portMatrix1, files=T){
 		#
 		expOut = rbind(expOut, lencom)
 	}
-	
+		
 	#
 	return(expOut)
 }
@@ -951,7 +954,8 @@ estLenCompDoc = function(calcomLenData, doc=sprintf("lendoc%s.csv", unique(calco
 			#sampBorrow = borrLab[(samp[i,'expNums']==0)+1]
 			sampBorrow = borrLab[samp[i, 'alsSource']]
 			#
-		        out = cbind(species=samp[i,'actSpecies'], year=year, disp=samp[i,'actLive'], gear=samp[i,'actGear'], port=samp[i,'actPort'], mcat=samp[i,'actMcat'], flength=histX[!is.na(histLS)], sex=histY[!is.na(histLS)], ex=histLS[!is.na(histLS)], source=sampBorrow)
+			trimZeros = histLS!=0
+		        out = cbind(species=samp[i,'actSpecies'], year=year, disp=samp[i,'actLive'], gear=samp[i,'actGear'], port=samp[i,'actPort'], mcat=samp[i,'actMcat'], flength=histX[!is.na(histLS) & trimZeros], sex=histY[!is.na(histLS) & trimZeros], ex=histLS[!is.na(histLS) & trimZeros], source=sampBorrow)
 		        lencom = rbind(lencom, out) 
 		}
 		lencom$flength = as.numeric(lencom$flength)
@@ -971,34 +975,34 @@ estLenCompDoc = function(calcomLenData, doc=sprintf("lendoc%s.csv", unique(calco
 	return(expOut)
 }
 
+##
+##INHERENTS
+##
 #
-#INHERENTS
+##One Port Away, No Conception
+##' A default matrix that encodes the default 1-away port sharing rules (no borrowing across Point Conception).
+##' 
+##' Row index defines the port to be filled in north to south encoding 
+##' c('CRS', 'ERK', 'BRG', 'BDG', 'OSF', 'MNT', 'MRO', 'OSB', 'OLA', 'OSD'). 
+##' Column values define the priority of sharing across ports for the given row.
+##' Any value outside of c('CRS', 'ERK', 'BRG', 'BDG', 'OSF', 'MNT', 'MRO', 'OSB', 'OLA', 'OSD') codes for 'NOMINAL'.
+#portMatrix1 = matrix(
+#        c(
+#        'ERK', 'NOMINAL', 'NOMINAL', 'NOMINAL', 'NOMINAL',
+#        'CRS',     'BRG', 'NOMINAL', 'NOMINAL', 'NOMINAL',
+#        'ERK',     'BDG', 'NOMINAL', 'NOMINAL', 'NOMINAL',
+#        'OSF',     'BRG', 'NOMINAL', 'NOMINAL', 'NOMINAL',
+#        'BDG',     'MNT', 'NOMINAL', 'NOMINAL', 'NOMINAL',
+#        'OSF',     'MRO', 'NOMINAL', 'NOMINAL', 'NOMINAL',
+#        'MNT', 'NOMINAL', 'NOMINAL', 'NOMINAL', 'NOMINAL',
+#        'OLA', 'NOMINAL', 'NOMINAL', 'NOMINAL', 'NOMINAL',
+#        'OSB',     'OSD', 'NOMINAL', 'NOMINAL', 'NOMINAL',
+#        'OLA', 'NOMINAL', 'NOMINAL', 'NOMINAL', 'NOMINAL'
+#        ),
+#10, 5, byrow=T)
+#colnames(portMatrix1) = c('first', 'second', 'third', 'fourth', 'fifth')
+#rownames(portMatrix1) = c('CRS', 'ERK', 'BRG', 'BDG', 'OSF', 'MNT', 'MRO', 'OSB', 'OLA', 'OSD')
 #
-
-#One Port Away, No Conception
-#' A default matrix that encodes the default 1-away port sharing rules (no borrowing across Point Conception).
-#' 
-#' Row index defines the port to be filled in north to south encoding 
-#' c('CRS', 'ERK', 'BRG', 'BDG', 'OSF', 'MNT', 'MRO', 'OSB', 'OLA', 'OSD'). 
-#' Column values define the priority of sharing across ports for the given row.
-#' Any value outside of c('CRS', 'ERK', 'BRG', 'BDG', 'OSF', 'MNT', 'MRO', 'OSB', 'OLA', 'OSD') codes for 'NOMINAL'.
-portMatrix1 = matrix(
-        c(
-        'ERK', 'NOMINAL', 'NOMINAL', 'NOMINAL', 'NOMINAL',
-        'CRS',     'BRG', 'NOMINAL', 'NOMINAL', 'NOMINAL',
-        'ERK',     'BDG', 'NOMINAL', 'NOMINAL', 'NOMINAL',
-        'OSF',     'BRG', 'NOMINAL', 'NOMINAL', 'NOMINAL',
-        'BDG',     'MNT', 'NOMINAL', 'NOMINAL', 'NOMINAL',
-        'OSF',     'MRO', 'NOMINAL', 'NOMINAL', 'NOMINAL',
-        'MNT', 'NOMINAL', 'NOMINAL', 'NOMINAL', 'NOMINAL',
-        'OLA', 'NOMINAL', 'NOMINAL', 'NOMINAL', 'NOMINAL',
-        'OSB',     'OSD', 'NOMINAL', 'NOMINAL', 'NOMINAL',
-        'OLA', 'NOMINAL', 'NOMINAL', 'NOMINAL', 'NOMINAL'
-        ),
-10, 5, byrow=T)
-colnames(portMatrix1) = c('first', 'second', 'third', 'fourth', 'fifth')
-rownames(portMatrix1) = c('CRS', 'ERK', 'BRG', 'BDG', 'OSF', 'MNT', 'MRO', 'OSB', 'OLA', 'OSD')
-
 ##
 ##TEST
 ##
