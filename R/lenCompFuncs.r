@@ -462,6 +462,9 @@ estLenComp = function(calcomLenData, portBorr=portMatrix1, files=T){
         #make sure species expansion years match the fish level years 
         stopifnot( sppExpYear %in% fishYear )
 	
+	#do not hand me spp or age data. I need length data.
+        stopifnot( all((c("tempLen1", "tempLen2", "tempLen3", "tempLen4") %in% names(calcomLenData))) )
+	
 	#
 	expOut = c()
 	for(year in fishYear){
@@ -576,16 +579,15 @@ estLenComp = function(calcomLenData, portBorr=portMatrix1, files=T){
 		#
 		lendoc$expanded[lendoc$expanded!="I"] = "Y"
 		lendoc$expanded[lendoc$expanded=="I"] = "N"
-		#NOTE: this is what don does
+		#this is what don does
 		numSource = sapply(lendoc$borrowed, function(l){which(LETTERS==l)})
 		lendoc$borrowed = "N"
 		lendoc$borrowed[numSource>1 & numSource<9] = "Y"
 		lendoc[lendoc$borrowed!="Y", c("borrGear", "borrPort")] = ""
 		lendocDon = lendoc
 		lendocDon = lendocDon[,c('year', 'species', 'live', 'mcat', 'gear', 'port', 'year', 'species', 'live', 'mcat', 'borrGear', 'borrPort', 'sppStratSamCt', 'expLands', 'expanded')]
-		#NOTE: in sppComp we only include expanded strata, but we include all expanded strata sources (below I do that)
-		#NOTE: thus add weight back in and add a partition at the bottom (end matter) with all of the extra non expanded stuff below
-		#NOTE: figure out how to read in this new file format in the doc version of the function (toss the end matter)
+		#in sppComp we only include expanded strata, but we include all expanded strata sources (below I do that)
+		#thus add weight back in and add a partition at the bottom (end matter) with all of the extra non expanded stuff below
 		lendoc = lendoc[lendoc$expanded=="Y",]
 		isBorr = lendoc$borrowed=="Y"
 		#copy over stuff where no borrowing can happen
@@ -614,7 +616,7 @@ estLenComp = function(calcomLenData, portBorr=portMatrix1, files=T){
 		#
         	if( files ){
 			write.csv(lendoc, sprintf("lendoc%s.csv", year), row.names=F, quote=F)
-			#NOTE: either overload my lendoc here, or write two lendocs (add the lendocDon).
+			#overload my lendoc here, would have to write two lendocs (add the lendocDon).
 			write.table(lendocDon[lendocDon$expanded=="N",c('year', 'species', 'live', 'mcat', 'gear', 'port', 'year', 'species', 'live', 'mcat', 'borrGear', 'borrPort', 'sppStratSamCt', 'expLands')], 
 					file	= sprintf("lendoc%s.csv", year),
 					append	= T,
@@ -758,6 +760,9 @@ estLenCompDoc = function(calcomLenData, doc=sprintf("lendoc%s.csv", unique(calco
 	#make sure species expansion years match the fish level years 
         stopifnot( sppExpYear %in% fishYear )
 	
+	#do not hand me spp or age data. I need length data.
+        stopifnot( all((c("tempLen1", "tempLen2", "tempLen3", "tempLen4") %in% names(calcomLenData))) )
+
 	#getting all the exDocs and checking year situation
         lenDocs = list()
         for(i in 1:length(fishYear)){
@@ -770,6 +775,9 @@ estLenCompDoc = function(calcomLenData, doc=sprintf("lendoc%s.csv", unique(calco
                 #
                 lenDocs[[lenDocYear]] = lenDocY
         }
+	
+	#do not hand me spp or age data. I need length data.
+        stopifnot( all((c("tempLen1", "tempLen2", "tempLen3", "tempLen4") %in% names(calcomLenData))) )
 	
 	#
         expOut = c()

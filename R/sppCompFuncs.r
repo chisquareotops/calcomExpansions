@@ -785,7 +785,10 @@ estSppComp = function(pacfinData, calcomData, portBorr=portMatrix2, qtrBorr=qtrM
 	stopifnot( calcomT1Year %in% calcomMYear )
 	stopifnot( calcomT1Year %in% pacfinYear )
 	stopifnot( calcomMYear %in% pacfinYear )
-	
+
+	#do not hand me age or length data. I need spp data
+        stopifnot( all((c("temp1", "temp2") %in% names(calcomData))) )
+		
 	#
 	expLand = c()
 	for(year in pacfinYear){
@@ -1302,6 +1305,9 @@ estSppCompDoc = function(pacfinData, calcomData, doc=sprintf("sppdoc%s.csv", uni
 	stopifnot( calcomT1Year %in% calcomMYear )
 	stopifnot( calcomT1Year %in% pacfinYear )
 	stopifnot( calcomMYear %in% pacfinYear )
+
+	#do not hand me age or length data. I need spp data
+        stopifnot( all((c("temp1", "temp2") %in% names(calcomData))) )
 	
 	#getting all the docs and checking year situation
 	docs = list()
