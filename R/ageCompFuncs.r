@@ -322,6 +322,158 @@ getCalcomAgeData = function(year, save=F, fromFile=F){
         return( out )
 }
 
+#NOTE: VVVVV just a place holder based on length export, still needs conversion to match com_age_comps and age_expand_docs
+
+##' A function to perform the various exporting tasks needed after an age expansion
+##' 
+##' @param exp   An expansion object created by estLenComp or estAgeCompDoc to 
+##'      be exported.
+##' @param human A boolean indicating if the human feed should be written to 
+##'      file (i.e. hfeedYY.csv).
+##' @param calcom A boolean indicating if the the calcom database should be 
+##'      backed up and updated with the given species expansion.
+##' @param doc   If calcom=True, a vector of doc filenames to be exported to 
+##'      calcom.
+##'
+##' @return NULL See current directory and/or database.
+#exportLen = function(exp, human=T, calcom=F, doc=NULL){ #, pacfin=T
+#        #exp    :
+#        #human  :
+#        #calcom :
+#        #doc    :
+#        #
+#        #value  :
+#
+#        ##
+#        #sourceMatrix = c(A="ACTUAL", B="ACTUAL", C="BORROW T-1", D="BORROW T-2", N="NOMINAL", E="BORROW T-∞", F="BORROW T-∞", G="BORROW T-∞", H="BORROW T-∞", I="BORROW T-∞", J="BORROW T-∞", K="BORROW T-∞", L="BORROW T-∞", M="BORROW T-∞")
+#
+#        #checking that exp is indeed a length expansion and not spp or age expansion
+#        stopifnot( all(names(exp)==c('species', 'year', 'port', 'gear', 'disp', 'mcat', 'sex', 'flength', 'binHeight', 'source')) )
+#
+#        #       
+#        years = sort(unique(exp$year))
+#        #disps = sort(unique(exp$disp))
+#        ##qtrs  = sort(unique(exp$qtr))
+#        #ports = unique(exp$port)
+#        #gears = sort(unique(exp$gear))
+#        #mcats = sort(unique(exp$mcat))
+#              ##flength
+#              ##sex
+#              ##binHeight
+#
+#              #rounded to hundreths because its the fewest digits so that the sums converges to the correct answer
+#              #rounding is automagically done by sql. thus let it round no need to double round, but this is where I did it that one time.
+#              #if we want to loosen rounding it should ideally be done in the data type defined in the sql collumn
+#              #exp$binHeight = round(exp$binHeight, 2)
+#
+#        #
+#        if( human ){
+#                #
+#                for(y in years){
+#                        #
+#                        write.csv(exp[exp$year==y,c('species', 'year', 'port', 'gear', 'disp', 'mcat', 'sex', 'flength', 'binHeight', 'source')], file=sprintf('hfeedLen%2d.csv', y%%100), quote=F, row.names=F)
+#                }
+#        }
+#
+#            #
+#            #propogate calcom SQL tables: 
+#        if( calcom ){
+#                #
+#                if( length(doc)!=length(years) ){
+#                        stop(sprintf("\n\tdoc filename must be specified for each year expanded when calcom==T"))
+#                }
+#                #
+#                flag = T
+#                while( flag ){
+#                        #
+#                        flag = tryCatch({
+#                                # Create microsoft sql connection driver and open connection to CALCOM
+#                                # CALCOM is an MS-SQL server on the PSMFC VPN
+#                                # sqljdbc4.jar file is required for creating the microsoft sql driver
+#                                #mDrv = RJDBC::JDBC('com.microsoft.sqlserver.jdbc.SQLServerDriver', './sqljdbc4.jar', identifier.quote="'")
+#                                #mDrv = RJDBC::JDBC('com.microsoft.sqlserver.jdbc.SQLServerDriver', file.path(dPath, "drivers", "sqljdbc4.jar"), identifier.quote="'")
+#                                mDrv = RJDBC::JDBC('com.microsoft.sqlserver.jdbc.SQLServerDriver', system.file("drivers/sqljdbc4.jar", package="calcomExpansions"), identifier.quote="'")
+#                                # CALCOM connection
+#                                writeLines("\nWriting Expansion to CALCOM Connection...")                  #CALCOM_test
+#                                x = getLoginDetails("CALCOM Login", "Username", "Pass", "Enter CALCOM Username and Password Below: \n(requires PSMFC VPN and elevated privileges)")
+#                                mCon = RJDBC::dbConnect(mDrv, 'jdbc:sqlserver://sql2016.psmfc.org\\calcom;databaseName=CALCOM_test', x['loginID'], x['password'])
+#                                #mCon = RJDBC::dbConnect(mDrv, 'jdbc:sqlserver://sql2016.psmfc.org\\calcom;databaseName=CALCOM', getPass::getPass('CALCOM User: '), getPass::getPass('Password: '))
+#
+#                                #
+#                                #dbWriteTable(ch, "bigNewIPTest", dat, row.names=F, overwrite=T)
+#                                #dbWriteTable(ch, "bigNewIPTest", dat, row.names=F, overwrite=F, append=T)
+#                                #
+#                                #backup year(s) into one dedicated temp_file
+#                                        #one backup a day, only do a backup if one does not already exist. 
+#                                        #separate functionality to force a backup
+#                                        #dbSendQuery 
+#                                        #xxx_COM_LANDS_BAK_YYYYMMDD
+#                                        #select * into xxx_COM_LANDS_BAK_YYYYMMDD from com_lands 
+#                                        #xxx_COMP_EXPAND_DOCS_BAK_YYYYMMDD
+#                                #delete previous data
+#                                        #delete only given years?       
+#                                #write new year(s) data 
+#                                        #dbWriteTable( , row.names=F, append=T, overwrite=F)
+#                                        #close(mCon)
+#
+#                                #before we do anything with the database backup!
+#                                backup(mCon, 'COM_LEN_COMPS')
+#                                backup(mCon, 'LEN_EXPAND_DOCS')
+#
+#                                #read in docs here to separate it from potentially interfering with writting to the database.
+#                                docs = list()
+#                                for(i in 1:length(years)){
+#                                        #
+#                                        yeari = as.character(years[i])
+#                                        #all of the expanded in the new doc format excluding the commented unexpanded rows
+#                                        docs[[yeari]] = read.csv(doc[i], comment.char="#")
+#                                        docs[[yeari]]$borrow = c("Y", "N")[ (docs[[yeari]]$gearAct==docs[[yeari]]$gearUse & docs[[yeari]]$portAct==docs[[yeari]]$portUse) + 1 ]
+#                                        docs[[yeari]]$expanded = "Y"
+#                                        docs[[yeari]] = docs[[yeari]][,c('yearAct', 'sppAct', 'dispAct', 'gearAct', 'portAct', 'mcatAct', 'borrow', 'gearUse', 'portUse', 'expanded', 'ctUse', 'expLands')]
+#                                        #now read-in, clean-up and and add the commented out unexpanded rows 
+#                                        ##colnames(extras) = c('comment', 'yearAct', 'sppAct', 'dispAct', 'mcatAct', 'gearAct', 'portAct', 'yearUse', 'sppUse', 'dispUse', 'mcatUse', 'gearUse', 'portUse', 'ctUse','expLands')
+#                                        extras = suppressWarnings( read.csv(doc[i], row.names=NULL, col.names=c('comment', 'yearAct', 'sppAct', 'dispAct', 'mcatAct', 'gearAct', 'portAct', 'yearUse', 'sppUse', 'dispUse', 'mcatUse', 'gearUse', 'portUse', 'ctUse','expLands')) ) #skip=nrow(docs[[yeari]])   
+#                                        extras = extras[extras$comment=="#",]
+#                                        extras$borrow = "N"
+#                                        extras$expanded = "N"
+#                                        extras = extras[,c('yearAct', 'sppAct', 'dispAct', 'gearAct', 'portAct', 'mcatAct', 'borrow', 'gearUse', 'portUse', 'expanded', 'ctUse', 'expLands')]
+#                                        #mesh together and put into the format of the database
+#                                        docs[[yeari]] = rbind(docs[[yeari]], extras)
+#                                        colnames(docs[[yeari]]) = c('year', 'species', 'live_fish', 'gear_grp', 'port_complex', 'mark_cat', 'borrow', 'borrow_gear', 'borrow_port', 'expanded', 'fish_ct', 'pounds')
+#                                }
+#
+#                                #update SQL
+#                                for(y in years){
+#                                        #
+#                                        toCom = exp[exp$year==y,]
+#                                        colnames(toCom) = c("species", "year", "port_complex", "gear_grp", "live", "mark_cat", "sex", "flength", "total", "source")
+#
+#                                        #COM_LEN_COMPS
+#                                        RJDBC::dbSendUpdate(mCon, sprintf("DELETE from COM_LEN_COMPS where year=%s", y) )
+#                                        RJDBC::dbWriteTable(mCon, "COM_LEN_COMPS", toCom, row.names=F, append=T, overwrite=F)
+#
+#                                        #LEN_EXPAND_DOCS
+#                                        RJDBC::dbSendUpdate(mCon, sprintf("DELETE from LEN_EXPAND_DOCS where year=%s", y) )
+#                                        RJDBC::dbWriteTable(mCon, "LEN_EXPAND_DOCS", docs[[as.character(y)]], row.names=F, append=T, overwrite=F)
+#                                }
+#
+#                                #exit loop when this eventually doesn't error
+#                                flag = F
+#                        }, error=function(err){
+#                                #
+#                                print(err)
+#                                readline("\nPSMFC IP address? SQL permissions? Wrong password?\n(Ctrl-C to Escape -or- Enter to Try Again)")
+#                                writeLines('')
+#                                #
+#                                flag = T
+#                        })
+#                }
+#        }
+#
+#        #NOTE: maybe return some sort of diagnostic information?
+#        return(NULL)
+#}
+
 #
 #EXPANSION FUNCTIONS
 #
@@ -375,6 +527,9 @@ estAgeComp = function(calcomAgeData, portBorr=portMatrix1, files=T){
         #make sure species expansion years match the fish level years 
         stopifnot( sppExpYear %in% fishYear )
 
+	#do not hand me spp or length data. I need age data.
+	stopifnot( all((c("tempAge1", "tempAge2", "tempAge3", "tempAge4") %in% names(calcomAgeData))) )
+	
 	#handle years without ages
 	isNoAges = c()
 	for(i in 1:length(fishYear)){
@@ -538,10 +693,12 @@ estAgeComp = function(calcomAgeData, portBorr=portMatrix1, files=T){
 		agedoc$borrowed = "N"
 		agedoc$borrowed[numSource>1 & numSource<9] = "Y"
 		agedoc[agedoc$borrowed!="Y", c("borrGear", "borrPort")] = ""
-		#NOTE: this is what don does, but in sppComp we only include expanded strata, but we include all expanded strata sources
+		#this is what don does, but in sppComp we only include expanded strata, but we include all expanded strata sources
 		agedocDon = agedoc
-		
-		#NOTE: the extra stuff needed to complete agedoc as done in lendoc
+		agedocDon = agedocDon[,c('year', 'species', 'live', 'mcat', 'gear', 'port', 'year', 'species', 'live', 'mcat', 'borrGear', 'borrPort', 'sppStratSamCt', 'expLands', 'expanded')]
+                #in sppComp we only include expanded strata, but we include all expanded strata sources (below I do that)
+                #thus add weight back in and add a partition at the bottom (end matter) with all of the extra non expanded stuff below
+		#below is the extra stuff needed to complete agedoc as done in lendoc
 		agedoc = agedoc[agedoc$expanded=="Y",]
                 isBorr = agedoc$borrowed=="Y"
                 #copy over stuff where no borrowing can happen
@@ -563,14 +720,23 @@ estAgeComp = function(calcomAgeData, portBorr=portMatrix1, files=T){
                                 agedoc$port==agedoc$borrPort[i]
                        ,'sppStratSamCt']) 
                 }
-                #remove the unneccessary columns, reorder, and then rename
-                agedoc = agedoc[,c('year', 'species', 'live', 'mcat', 'gear', 'port', 'yearUse', 'sppUse', 'dispUse', 'mcatUse', 'borrGear', 'borrPort', 'sppStratSamCt')]
-                colnames(agedoc) = c('yearAct', 'sppAct', 'dispAct', 'mcatAct', 'gearAct', 'portAct', 'yearUse', 'sppUse', 'dispUse', 'mcatUse', 'gearUse', 'portUse', 'ctUse')
-		
+                #remove the unneccessary columns, reorder, and then rename	
+		agedoc = agedoc[,c('year', 'species', 'live', 'mcat', 'gear', 'port', 'yearUse', 'sppUse', 'dispUse', 'mcatUse', 'borrGear', 'borrPort', 'sppStratSamCt', 'expLands')]
+                colnames(agedoc) = c('yearAct', 'sppAct', 'dispAct', 'mcatAct', 'gearAct', 'portAct', 'yearUse', 'sppUse', 'dispUse', 'mcatUse', 'gearUse', 'portUse', 'ctUse', 'expLands')
+	
 		#
                 if( files ){
                         write.csv(agedoc, sprintf("agedoc%s.csv", year), row.names=F, quote=F)
-                }
+                	#overload my agedoc here, would have to write two agedocs otherwise (add the agedocDon).
+                        write.table(agedocDon[agedocDon$expanded=="N",c('year', 'species', 'live', 'mcat', 'gear', 'port', 'year', 'species', 'live', 'mcat', 'borrGear', 'borrPort', 'sppStratSamCt', 'expLands')],
+                                        file    = sprintf("agedoc%s.csv", year),
+                                        append  = T,
+                                        sep     = ',',
+                                        quote   = F,
+                                        col.names=F,
+                                        row.names=rep("#", sum(agedocDon$expanded=="N"))
+                        )
+		}
 		
 		#PREP FOR EXPAND
 		
@@ -717,7 +883,7 @@ estAgeCompDoc = function(calcomAgeData, doc=sprintf("agedoc%s.csv", unique(calco
         ageDocs = list()
         for(i in 1:length(fishYear)){
                 #
-                ageDocY = read.csv(doc[i])
+                ageDocY = read.csv(doc[i], comment.char="#")
                 ageDocYear = unique(ageDocY$yearAct)
                 #
                 stopifnot( length(ageDocYear)==1 ) #the yealy exdoc files should only contain strata from a single year
@@ -725,6 +891,9 @@ estAgeCompDoc = function(calcomAgeData, doc=sprintf("agedoc%s.csv", unique(calco
                 #
                 ageDocs[[ageDocYear]] = ageDocY
         }
+
+	#do not hand me spp or length data. I need age data.
+	stopifnot( all((c("tempAge1", "tempAge2", "tempAge3", "tempAge4") %in% names(calcomAgeData))) )
 
 	#
         expOut = c()
