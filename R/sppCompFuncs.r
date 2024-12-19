@@ -505,7 +505,7 @@ exportSpp = function(exp, human=T, pacfin=T, calcom=F, doc=NULL){
 
 
 	#checking to make sure that the expansion is indeed a spp expansion and not an age or length expansion
-	stopifnot(  all(names(exp)==c('year','qtr','disp','mcat','gear','port','lands', 'source','spp','comp')) )
+	stopifnot(  all(names(exp)%in%c('year','qtr','disp','mcat','gear','port','lands', 'source','spp','comp')) )
 
 	##vu filtering
 	#exp = exp[exp$source!='N',] 
