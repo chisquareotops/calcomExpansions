@@ -488,21 +488,33 @@ getCalcomSppData = function(year, save=F, fromFile=F){
 #'	file (i.e. hfeedYY.csv).
 #' @param pacfin A boolean indicating if the pacfin feed should be written to 
 #'	file (i.e. pfeedYY.DAT).
-#' @param calcom A boolean indicating if the the calcom database should be 
+#' @param calcom A boolean indicating if the calcom database should be 
 #'	backed up and updated with the given species expansion.
 #' @param doc 	If calcom=True, a vector of doc filenames to be exported to 
 #'	calcom.
+#' @param allowBadSpp A boolean that stops exports by default if a badSpp file 
+#'	is generated (or exists). Set allowBadSpp=T to allow exports to proceed. 
 #'
 #' @return NULL See current directory and/or database.
-exportSpp = function(exp, human=T, pacfin=T, calcom=F, doc=NULL){
+exportSpp = function(exp, human=T, pacfin=T, calcom=F, doc=NULL, allowBadSpp=F){
 	#exp    :
 	#human  :
 	#pacfin :
 	#calcom :
 	#doc    :
+	#allowBadSpp:
 	#
 	#value  :
 
+	#no export happens without a recognition of any badSpp
+	badSppFiles = list.files(pattern="bad.*Spp.csv") 
+	if( length(badSppFiles)>0 ){
+		if(!allowBadSpp){
+			stop(sprintf("\n\tEvidence of bad species found. Consider badSpp.csv files and rerun with allowBadSpp=True to proceed.\n\t%s", paste(badSppFiles, collapse="\n\t")))
+		}else{
+			warning(sprintf("\n\tEvidence of bad species found. Consider badSpp.csv files.\n\t%s", paste(badSppFiles, collapse="\n\t")))
+		}
+	}
 
 	#checking to make sure that the expansion is indeed a spp expansion and not an age or length expansion
 	stopifnot(  all(names(exp)%in%c('year','qtr','disp','mcat','gear','port','lands', 'source','spp','comp')) )
@@ -887,14 +899,14 @@ estSppComp = function(pacfinData, calcomData, portBorr=portMatrix2, qtrBorr=qtrM
 			badName = sprintf('bad%sSpp.csv', year) #sprintf('bad%sSpp%s.csv', year, as.POSIXlt(Sys.time()))
 			badSpp  = unique(samp[isBadSpp,'species'])
 			#
-			if( files ){
+			#if( files ){
 				#
 				warning(sprintf("\n\t%s Bad Species Found: %s\n\tSample species code not found in valid CALCOM species_codes for species expansion.\n\tWritting problematic samples to '%s'.", year, toString(badSpp), badName))
         	        	#write the data to file.
 				write.csv(samp[isBadSpp,], badName, row.names=F, quote=F)
-			}else{
-				warning(sprintf("\n\t%s Bad Species Found: %s\n\tSample species code not found in valid CALCOM species_codes for species expansion.\n\tSet argument files=True to write problematic samples out to a badSpp.csv file.", year, toString(badSpp)))
-			}
+			#}else{
+			#	warning(sprintf("\n\t%s Bad Species Found: %s\n\tSample species code not found in valid CALCOM species_codes for species expansion.\n\tSet argument files=True to write problematic samples out to a badSpp.csv file.", year, toString(badSpp)))
+			#}
 		}
 
 		#PREP
@@ -1418,20 +1430,20 @@ estSppCompDoc = function(pacfinData, calcomData, doc=sprintf("sppdoc%s.csv", uni
 		#Warning and write badSpp.csv file
 		goodSpp = species_codes[species_codes$comp_use!='N', 'species']
 		isBadSpp = !samp$species%in%goodSpp 
-		#if( any(isBadSpp) ){
-		#	#
-		#	badName = sprintf('bad%sSpp.csv', year) #sprintf('bad%sSpp%s.csv', year, as.POSIXlt(Sys.time()))
-		#	badSpp  = unique(samp[isBadSpp,'species'])
-		#	#
-		#	if( files ){
-		#		#
-		#		warning(sprintf("\n\t%s Bad Species Found: %s\n\tSample species code not found in valid CALCOM species_codes for species expansion.\n\tWritting problematic samples to '%s'.", year, toString(badSpp), badName))
-        	#        	#write the data to file.
-		#		write.csv(samp[isBadSpp,], badName, row.names=F, quote=F)
-		#	}else{
-		#		warning(sprintf("\n\t%s Bad Species Found: %s\n\tSample species code not found in valid CALCOM species_codes for species expansion.\n\tSet argument files=True to write problematic samples out to a badSpp.csv file.", year, toString(badSpp)))
-		#	}
-		#}
+		if( any(isBadSpp) ){
+			#
+			badName = sprintf('bad%sSpp.csv', year) #sprintf('bad%sSpp%s.csv', year, as.POSIXlt(Sys.time()))
+			badSpp  = unique(samp[isBadSpp,'species'])
+			##
+			#if( files ){
+				#
+				warning(sprintf("\n\t%s Bad Species Found: %s\n\tSample species code not found in valid CALCOM species_codes for species expansion.\n\tWritting problematic samples to '%s'.", year, toString(badSpp), badName))
+        	        	#write the data to file.
+				write.csv(samp[isBadSpp,], badName, row.names=F, quote=F)
+			#}else{
+			#	warning(sprintf("\n\t%s Bad Species Found: %s\n\tSample species code not found in valid CALCOM species_codes for species expansion.\n\tSet argument files=True to write problematic samples out to a badSpp.csv file.", year, toString(badSpp)))
+			#}
+		}
 
 		#PREP
 		
