@@ -490,12 +490,43 @@ getCalcomSppData = function(year, save=F, fromFile=F){
 #'	file (i.e. pfeedYY.DAT).
 #' @param calcom A boolean indicating if the calcom database should be 
 #'	backed up and updated with the given species expansion.
-#' @param doc 	If calcom=True, a vector of doc filenames to be exported to 
+#' @param doc 	If calcom!=False, a vector of doc filenames to be exported to 
 #'	calcom.
 #' @param allowBadSpp A boolean that stops exports by default if a badSpp file 
 #'	is generated (or exists). Set allowBadSpp=T to allow exports to proceed. 
 #'
 #' @return NULL See current directory and/or database.
+#'
+#' When `human != FALSE`, `hfeedYY.csv` is created. This CSV is formatted for ease of use 
+#' with typical data processing tools such as Excel, R, or Python. 
+#' 
+#' The hfeedYY.csv contains the following columns:
+#' * `year`: Documents the year of the expansion.
+#' * `qtr`: Specifies the fiscal quarter expanded (1: Jan-Mar, 2: Apr-Jun, 3: Jul-Sep, 4: Oct-Dec).
+#' * `disp`: Describes the live (Y) or non-live (N) disposition of the expanded stratum.
+#' * `mcat`: The market category numerical code.
+#' * `gear`: The expanded gear group. Possible values are: "HKL", "FPT", "TWL", "NET", "OTH", and "UNK".
+#' * `port`: The expanded port complex. Possible values are: "CRS", "ERK", "BRG", "BDG", "OSF", "MNT", "MRO", "OSB", "OLA", and "OSD".
+#' * `spp`: The 4-letter species code. Note: the species "REX " and "POP " have trailing whitespace appended.
+#' * `lands`: The expanded pounds for a given species in each stratum.
+#' * `comp`: The proportion used to apportion pounds to a specific species in each stratum.
+#' * `source`: A categorical variable that describes borrowing as follows. 
+#'
+#' The `source` variable describes the quality of the samples that underpin the expansion of a given stratum:
+#' * `A`: Represents the highest quality expansion based on samples collected directly from the expanded stratum. 
+#' * `B`: Represents expansions using the actual year, disp, mcat, gear, and port, but borrows data from a different quarter than the one being expanded.
+#' * `C`: Represents port borrowing from a port complex adjacent to the actual stratum expanded. 
+#' * `D`: Represents port borrowing from a port complex two ports away from the actual stratum expanded. 
+#' * `N`: Represents a nominal expansion of the stratum, failing the data standards of A-D.
+#' 
+#' If there are no samples in a given year for a particular stratum, the protocol is to borrow from adjacent ports. 
+#' Together, sources 'A' and 'B' make up the source code "ACTUAL" seen in the CALCOM database. Jointly, these source 
+#' codes correspond to CALCOM database codes as follows: A="ACTUAL", B="ACTUAL", C="BORROW T-1", D="BORROW T-2", N="NOMINAL".
+#'
+#'When calcom!=F, no data files is produced but rather the program initiates an update of the calcom database using the 
+#'conventions described in https://repository.library.noaa.gov/view/noaa/4734. 
+#'
+#'When pacfin!=F, pfeedYY.DAT is created in the format specified by pacfin for their use ingesting the numbers into the database. 
 exportSpp = function(exp, human=T, pacfin=T, calcom=F, doc=NULL, allowBadSpp=F){
 	#exp    :
 	#human  :
@@ -756,6 +787,12 @@ exportSpp = function(exp, human=T, pacfin=T, calcom=F, doc=NULL, allowBadSpp=F){
 #'	expansion output files such as sppdoc.
 #'
 #' @return a data.frame reminiscent of the calcom.com_lands table. 
+#' 
+#'If run with files=T, a sppdocYYYY.csv file will be produced which decribes which data are used to expand each expanded stratum.
+#'The variables yearAct, qtrAct, dispAct, mcatAct, gearAct, and portAct describe the ACTual stratum expanded.
+#'The variables yearUse, qtrUse, dispUse, mcatUse, gearUse, and portUse describe the source of the data USEd in the expansion.
+#'Together this file documents the precise borrows of a given expansion. If the user wishes they may edit or otherwise specify a doc file
+#'to run a custom expansion using the estSppCompDoc function. See estSppCompDoc for further documentation.
 estSppComp = function(pacfinData, calcomData, portBorr=portMatrix2, qtrBorr=qtrMatrix, files=T){
 	#pacfinData : a data.frame as returned by getPacfinData
 	#calcomData : a list as returned by getCalcomData
@@ -1817,4 +1854,28 @@ rownames(portMatrix2) = c('CRS', 'ERK', 'BRG', 'BDG', 'OSF', 'MNT', 'MRO', 'OSB'
 #sppExp = estSppComp(pacfinTix, calcomDat, files=T)
 #sppExpDoc = estSppCompDoc(pacfinTix, calcomDat) #, doc="exdoc2019NoOLVE.csv")
 
-
+#
+#When human!=F, hfeedYY.csv is created. The csv is formated for ease of use 
+#with typical data processing tools such as excel, R or Python. The column 'year'
+#documents the year of the expansion. 'qtr' specifies the fiscal quarter expanded. 
+#qtr 1 represents landing receipts from Jan.-Mar., qtr 2: April-June, qtr 3: July-Sept. 
+#qtr 4: Oct.-Dec. The column 'disp' describes the live (Y) or non-live (N) disposition 
+#of the expanded stratum. 'mcat' is the market category numerical code. 'gear' is the 
+#expanded gear group taking the possible values: "HKL", "FPT", "TWL", "NET", "OTH", "UNK".
+#'port' is the expanded port complex taking values: "CRS", "ERK", "BRG", "BDG", "OSF", "MNT",
+#"MRO", "OSB", "OLA", "OSD". The column 'spp' is the 4 letter species code. The species "REX " 
+#and "POP " have trailing whitespace appended to the end. The column 'lands' contains the expanded 
+#pounds for a given species in each stratum. The column 'comp' is the proportion used to apportion 
+#pounds to a specific species in the each stratum.
+#
+#The 'source' variable describes the quality of the samples that underpin the expansion of a given strata. 
+#source='A': represents the highest quality expansion based on the samples collected directly from the expanded 
+#stratum. source='B': represents expansions from the actual year, disp, mcat, gear, and port but borrow data from 
+#a different qtr than being expanded. Together sources 'A' and 'B' make up the source code "ACTUAL" that is seen 
+#in the CALCOM database. If there are no samples in a given year, for a particular stratum, the protocol is to 
+#borrow from adjacent ports. source='C' represents port borrowing from an adjacent port complex to the actual stratum 
+#expanded. source='D' represents port borrowing from a port complex adjacent to a port complex adjacent to the actual 
+#stratum expanded (2 ports away). source='N' represents nominal expansion of the stratum failing the data standards 
+#of A-D. Jointly these source codes correspond to calcom database codes as follows: A="ACTUAL", B="ACTUAL", C="BORROW T-1", 
+#D="BORROW T-2", N="NOMINAL". 
+#

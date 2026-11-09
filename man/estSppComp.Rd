@@ -36,6 +36,12 @@ expansion output files such as sppdoc.}
 }
 \value{
 a data.frame reminiscent of the calcom.com_lands table.
+
+If run with files=T, a sppdocYYYY.csv file will be produced which decribes which data are used to expand each expanded stratum.
+The variables yearAct, qtrAct, dispAct, mcatAct, gearAct, and portAct describe the ACTual stratum expanded.
+The variables yearUse, qtrUse, dispUse, mcatUse, gearUse, and portUse describe the source of the data USEd in the expansion.
+Together this file documents the precise borrows of a given expansion. If the user wishes they may edit or otherwise specify a doc file
+to run a custom expansion using the estSppCompDoc function. See estSppCompDoc for further documentation.
 }
 \description{
 The core expansion function executing an automated species expansion of Don's

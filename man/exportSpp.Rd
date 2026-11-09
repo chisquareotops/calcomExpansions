@@ -4,7 +4,7 @@
 \alias{exportSpp}
 \title{A function to perform the various exporting tasks needed after a species expansion}
 \usage{
-exportSpp(exp, human = T, pacfin = T, calcom = F, doc = NULL)
+exportSpp(exp, human = T, pacfin = T, calcom = F, doc = NULL, allowBadSpp = F)
 }
 \arguments{
 \item{exp}{An expansion object created by estSppComp or estSppCompDoc to
@@ -16,14 +16,52 @@ file (i.e. hfeedYY.csv).}
 \item{pacfin}{A boolean indicating if the pacfin feed should be written to
 file (i.e. pfeedYY.DAT).}
 
-\item{calcom}{A boolean indicating if the the calcom database should be
+\item{calcom}{A boolean indicating if the calcom database should be
 backed up and updated with the given species expansion.}
 
-\item{doc}{If calcom=True, a vector of doc filenames to be exported to
+\item{doc}{If calcom!=False, a vector of doc filenames to be exported to
 calcom.}
+
+\item{allowBadSpp}{A boolean that stops exports by default if a badSpp file
+is generated (or exists). Set allowBadSpp=T to allow exports to proceed.}
 }
 \value{
 NULL See current directory and/or database.
+
+When \code{human != FALSE}, \code{hfeedYY.csv} is created. This CSV is formatted for ease of use
+with typical data processing tools such as Excel, R, or Python.
+
+The hfeedYY.csv contains the following columns:
+\itemize{
+\item \code{year}: Documents the year of the expansion.
+\item \code{qtr}: Specifies the fiscal quarter expanded (1: Jan-Mar, 2: Apr-Jun, 3: Jul-Sep, 4: Oct-Dec).
+\item \code{disp}: Describes the live (Y) or non-live (N) disposition of the expanded stratum.
+\item \code{mcat}: The market category numerical code.
+\item \code{gear}: The expanded gear group. Possible values are: "HKL", "FPT", "TWL", "NET", "OTH", and "UNK".
+\item \code{port}: The expanded port complex. Possible values are: "CRS", "ERK", "BRG", "BDG", "OSF", "MNT", "MRO", "OSB", "OLA", and "OSD".
+\item \code{spp}: The 4-letter species code. Note: the species "REX " and "POP " have trailing whitespace appended.
+\item \code{lands}: The expanded pounds for a given species in each stratum.
+\item \code{comp}: The proportion used to apportion pounds to a specific species in each stratum.
+\item \code{source}: A categorical variable that describes borrowing as follows.
+}
+
+The \code{source} variable describes the quality of the samples that underpin the expansion of a given stratum:
+\itemize{
+\item \code{A}: Represents the highest quality expansion based on samples collected directly from the expanded stratum.
+\item \code{B}: Represents expansions using the actual year, disp, mcat, gear, and port, but borrows data from a different quarter than the one being expanded.
+\item \code{C}: Represents port borrowing from a port complex adjacent to the actual stratum expanded.
+\item \code{D}: Represents port borrowing from a port complex two ports away from the actual stratum expanded.
+\item \code{N}: Represents a nominal expansion of the stratum, failing the data standards of A-D.
+}
+
+If there are no samples in a given year for a particular stratum, the protocol is to borrow from adjacent ports.
+Together, sources 'A' and 'B' make up the source code "ACTUAL" seen in the CALCOM database. Jointly, these source
+codes correspond to CALCOM database codes as follows: A="ACTUAL", B="ACTUAL", C="BORROW T-1", D="BORROW T-2", N="NOMINAL".
+
+When calcom!=F, no data files is produced but rather the program initiates an update of the calcom database using the
+conventions described in https://repository.library.noaa.gov/view/noaa/4734.
+
+When pacfin!=F, pfeedYY.DAT is created in the format specified by pacfin for their use ingesting the numbers into the database.
 }
 \description{
 A function to perform the various exporting tasks needed after a species expansion
