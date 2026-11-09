@@ -174,24 +174,24 @@ with typical data processing tools such as Excel, R, or Python.
  
 The hfeedYY.csv contains the following columns:
 
-  * `year`: Documents the year of the expansion.
-  * `qtr`: Specifies the fiscal quarter expanded (1: Jan-Mar, 2: Apr-Jun, 3: Jul-Sep, 4: Oct-Dec).
-  * `disp`: Describes the live (Y) or non-live (N) disposition of the expanded stratum.
-  * `mcat`: The market category numerical code.
-  * `gear`: The expanded gear group. Possible values are: "HKL", "FPT", "TWL", "NET", "OTH", and "UNK".
-  * `port`: The expanded port complex. Possible values are: "CRS", "ERK", "BRG", "BDG", "OSF", "MNT", "MRO", "OSB", "OLA", and "OSD".
-  * `spp`: The 4-letter species code. Note: the species "REX " and "POP " have trailing whitespace appended.
-  * `lands`: The expanded pounds for a given species in each stratum.
-  * `comp`: The proportion used to apportion pounds to a specific species in each stratum.
-  * `source`: A categorical variable that describes borrowing as follows. 
+    * `year`: Documents the year of the expansion.
+    * `qtr`: Specifies the fiscal quarter expanded (1: Jan-Mar, 2: Apr-Jun, 3: Jul-Sep, 4: Oct-Dec).
+    * `disp`: Describes the live (Y) or non-live (N) disposition of the expanded stratum.
+    * `mcat`: The market category numerical code.
+    * `gear`: The expanded gear group. Possible values are: "HKL", "FPT", "TWL", "NET", "OTH", and "UNK".
+    * `port`: The expanded port complex. Possible values are: "CRS", "ERK", "BRG", "BDG", "OSF", "MNT", "MRO", "OSB", "OLA", and "OSD".
+    * `spp`: The 4-letter species code. Note: the species "REX " and "POP " have trailing whitespace appended.
+    * `lands`: The expanded pounds for a given species in each stratum.
+    * `comp`: The proportion used to apportion pounds to a specific species in each stratum.
+    * `source`: A categorical variable that describes borrowing as follows. 
 
 The `source` variable describes the quality of the samples that underpin the expansion of a given stratum:
 
-  * `A`: Represents the highest quality expansion based on samples collected directly from the expanded stratum. 
-  * `B`: Represents expansions using the actual year, disp, mcat, gear, and port, but borrows data from a different quarter than the one being expanded.
-  * `C`: Represents port borrowing from a port complex adjacent to the actual stratum expanded. 
-  * `D`: Represents port borrowing from a port complex two ports away from the actual stratum expanded. 
-  * `N`: Represents a nominal expansion of the stratum, failing the data standards of A-D.
+    * `A`: Represents the highest quality expansion based on samples collected directly from the expanded stratum. 
+    * `B`: Represents expansions using the actual year, disp, mcat, gear, and port, but borrows data from a different quarter than the one being expanded.
+    * `C`: Represents port borrowing from a port complex adjacent to the actual stratum expanded. 
+    * `D`: Represents port borrowing from a port complex two ports away from the actual stratum expanded. 
+    * `N`: Represents a nominal expansion of the stratum, failing the data standards of A-D.
  
 If there are no samples in a given year for a particular stratum, the protocol is to borrow from adjacent ports. 
 Together, sources 'A' and 'B' make up the source code "ACTUAL" seen in the CALCOM database. Jointly, these source 
