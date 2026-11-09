@@ -173,6 +173,7 @@ When exporting with `human != FALSE`, `hfeedYY.csv` is created. This CSV is form
 with typical data processing tools such as Excel, R, or Python. 
  
 The hfeedYY.csv contains the following columns:
+
   * `year`: Documents the year of the expansion.
   * `qtr`: Specifies the fiscal quarter expanded (1: Jan-Mar, 2: Apr-Jun, 3: Jul-Sep, 4: Oct-Dec).
   * `disp`: Describes the live (Y) or non-live (N) disposition of the expanded stratum.
@@ -185,6 +186,7 @@ The hfeedYY.csv contains the following columns:
   * `source`: A categorical variable that describes borrowing as follows. 
 
 The `source` variable describes the quality of the samples that underpin the expansion of a given stratum:
+
   * `A`: Represents the highest quality expansion based on samples collected directly from the expanded stratum. 
   * `B`: Represents expansions using the actual year, disp, mcat, gear, and port, but borrows data from a different quarter than the one being expanded.
   * `C`: Represents port borrowing from a port complex adjacent to the actual stratum expanded. 
